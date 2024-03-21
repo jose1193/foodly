@@ -20,7 +20,7 @@ class RoleController extends Controller
 
  public function __construct()
 {
-    $this->middleware('permission:manage manager')->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    $this->middleware('permission:Super Admin')->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 }
 
 

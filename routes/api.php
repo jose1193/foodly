@@ -8,7 +8,10 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UsersController;
 use App\Http\Controllers\Api\PermissionController;
+//use App\Http\Controllers\Api\ErrorController;
 use Illuminate\Support\Facades\Response;
+use App\Http\Controllers\Api\ProfilePhotoController ;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -61,15 +64,8 @@ Route::get('/google-auth/callback', function () {
 ///------------- END ROUTE GOOGLE AUTH ---------///
 
 Route::post('login', [AuthController::class, 'login']);
-Route::post('/register', function (Request $request, CreateNewUser $creator) {
-    $userCreate = $creator->create($request->all());
-    $message = 'User data was successfully registered';
-    $user =  [
-            'token' => $userCreate->createToken('API Token')->plainTextToken,
-            'user' => $userCreate,
-        ];
-    return response()->json(['user' => $user, 'message' => $message], 201);
-});
+
+Route::post('/register', [AuthController::class, 'register']);
 
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 
@@ -82,6 +78,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     
     Route::post('reset-password', [AuthController::class, 'resetPassword']);
     Route::post('update-profile', [AuthController::class, 'updateProfile']);
+
+    
+    Route::post('update-profile-photo', [ProfilePhotoController::class, 'update']);
+
 
     // Rutas relacionadas con roles
     Route::get('roles-list', [RoleController::class, 'index']); // Obtener una lista de roles
@@ -109,7 +109,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::delete('permissions-delete/{id}', [PermissionController::class, 'destroy']);
     Route::get('permissions/create', [PermissionController::class, 'create']);
     Route::get('permissions/{id}/edit', [PermissionController::class, 'edit']);
+    
 });
 
+//Route::fallback([ErrorController::class, 'notFound']);
 
   

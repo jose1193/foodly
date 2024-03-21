@@ -11,7 +11,7 @@ class PermissionController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:manage manager')->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+        $this->middleware('permission:Super Admin')->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     }
 
     public function index(Request $request)

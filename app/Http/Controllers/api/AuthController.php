@@ -9,87 +9,122 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Actions\Fortify\CreateNewUser;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
+
+use App\Http\Requests\LoginRequest;
+use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Resources\UserResource;
+
+
 class AuthController extends Controller
 {
 public function __construct()
 {
-    $this->middleware('permission:manage manager')->only(['getUsers']);
+    $this->middleware('permission:Super Admin')->only(['getUsers']);
    
 }
+
+
 // USER LOGIN
-public function login(Request $request)
-{
-    $credentials = $request->only('email', 'password');
+ // login a user method
+    public function login(LoginRequest $request) {
+    $data = $request->validated();
 
-    if (Auth::attempt($credentials)) {
-        $user = Auth::user();
+    $user = User::where('email', $data['email'])->first();
 
-        if ($request->filled('remember')) {
-            $rememberToken = Str::random(60); // Generar un token de recordar aleatorio
-            $user->forceFill([
-                'remember_token' => hash('sha256', $rememberToken),
-            ])->save();
-
-            $userObject = $user->toArray();
-            $userObject['remember_token'] = $rememberToken;
-        } else {
-            $userObject = $user->toArray();
-        }
-
-        $userObject['token'] = $user->createToken('API Token')->plainTextToken;
-
-        $roles = Role::pluck('name', 'name')->all();
-        $userRole = $user->roles->pluck('name', 'name')->all();
-
-        $welcomeMessage = '¡Bienvenido/a ' . $user->name . '! Tu tipo de usuario es ' . implode(', ', $userRole) . '.';
-
-        return response()->json(['user' => $userObject, 'roles' => $roles, 'userRole' => $userRole, 'message' => $welcomeMessage], 200);
+    if (!$user || !Hash::check($data['password'], $user->password)) {
+        return response()->json([
+            'message' => 'Email or password is incorrect!'
+        ], 401);
     }
 
-    return response()->json(['error' => 'Credenciales inválidas'], 401);
+    // Retrieve user roles
+    $userRoles = $user->roles->pluck('name')->all();
+
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    $cookie = cookie('token', $token, 60 * 24); // 1 day
+
+    // Add userRoles directly to the user object
+    $user->userRoles = $userRoles;
+
+    // Create the user resource
+    $userResource = new UserResource($user);
+
+    $userObject = $user->toArray();
+
+    if ($request->filled('remember')) {
+        $rememberToken = Str::random(60);
+        $user->forceFill([
+            'remember_token' => hash('sha256', $rememberToken),
+        ])->save();
+
+        $userObject['remember_token'] = $rememberToken;
+    }
+
+    $userObject['token'] = $token;
+    $tokenCreatedAt = $user->tokens()->where('name', 'auth_token')->first()->created_at;
+    $formattedTokenCreatedAt = $tokenCreatedAt->format('Y-m-d H:i:s');
+
+    return response()->json([
+        'user' => $userResource,
+        'token' => explode('|', $token)[1],
+        'token_type' => 'Bearer',
+        'token_created_at' => $formattedTokenCreatedAt, 
+        'message' => 'User logged successfully',
+    ])->withCookie($cookie);
 }
+
+
 
 
 // USER LOGOUT
-public function logout()
+ // logout a user method
+    public function logout(Request $request) {
+        $request->user()->currentAccessToken()->delete();
+
+        $cookie = cookie()->forget('token');
+
+        return response()->json([
+            'message' => 'Logged out successfully!'
+        ])->withCookie($cookie);
+    }
+
+    
+public function logout2()
 {
     if (auth()->user()) {
         auth()->user()->tokens()->delete();
-        return Response::json(['message' => 'Sesión cerrada correctamente'],200);
+        return Response::json(['message' => 'Successfully logged out'],200);
     } else {
-        return Response::json(['message' => 'No se encontró ninguna sesión activa'], 401);
+        return Response::json(['message' => 'No active session found'], 401);
     }
 }
 
 
 // DETAILS CURRENT USER
- public function user()
-{
-    // Obtener al usuario autenticado
-    $user = auth()->user();
+ // get the authenticated user method
+   public function user(Request $request) {
+    // Get the authenticated user
+    $user = $request->user();
 
-    // Verificar si el usuario está autenticado
-    if (!$user) {
-        return response()->json(['message' => 'User not authenticated'], 401);
-    }
+    // Create a UserResource with basic user details
+    $userResource = new UserResource($user);
 
-    // Obtener los roles disponibles
-    $roles = Role::pluck('name', 'id')->all();
+    // Obtain the roles assigned to the user
+    $userRoles = $user->roles->pluck('name')->all();
 
-    // Obtener los IDs de roles asignados al usuario
-    $userRoles = $user->roles->pluck('id')->all();
+    // Add the roles information to the UserResource data
+    $userResourceData = $userResource->toArray($request);
+    $userResourceData['user_roles'] = $userRoles;
 
-    // Devolver la respuesta JSON con los detalles del usuario y los roles
-    return response()->json([
-        'user' => $user,
-        'roles' => $roles,
-        'userRoles' => $userRoles
-    ], 200);
+    // Return the modified UserResource data
+    return response()->json($userResourceData);
 }
 
 
@@ -104,13 +139,13 @@ public function updatePassword(Request $request)
         $user = Auth::user();
 
         if (!Hash::check($request->current_password, $user->password)) {
-            return response()->json(['error' => 'La contraseña actual no coincide'], 401);
+            return response()->json(['error' => 'Current password does not match'], 401);
         }
 
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return response()->json(['message' => 'Contraseña actualizada correctamente']);
+        return response()->json(['message' => 'Password updated successfully']);
     }
 
     // RESET PASSWORD LINK
@@ -158,32 +193,32 @@ public function updatePassword(Request $request)
 
     // UPDATE PROFILE USER
     public function updateProfile(Request $request, UpdateUserProfileInformation $updater)
-    {
-        $user = $request->user();
+{
+    $user = $request->user();
 
-
-        // --- VALIDAR SIZE DE LA PHOTO
-       try {
-    $request->validate([
-        'photo' => 'nullable|file|max:1024', // Cambiar 1024 por 1000 para 1MB
-    ], [
-        'photo.max' => 'La foto no debe ser mayor a 1MB.', // Mensaje personalizado
-    ]);
-} catch (ValidationException $e) {
-    return Response::json(['message' => $e->errors()], 422);
-}
-
-
- // -- Verificar si se envió una nueva foto
-    if ($request->hasFile('photo')) {
-        $input['photo'] = $request->file('photo');
-    }
-
-    // --- INPUTS UPDATE
+    try {
         $updater->update($user, $request->all());
-//--- MESSAGE
-        return Response::json(['message' => 'Perfil actualizado correctamente.']);
+    } catch (ValidationException $e) {
+        return response()->json(['message' => $e->errors()], 422);
     }
+
+    
+  // Obtener el usuario actualizado después de la actualización
+    $updatedUser = $request->user();
+
+    // Obtener el primer rol asignado al usuario actualizado
+    $userRole = $updatedUser->roles->first()->name;
+
+    // Agregar el nombre del rol al objeto de usuario
+    $updatedUser->user_role = $userRole;
+
+    // Remover la relación pivot para evitar mostrarla
+    unset($updatedUser->roles);
+
+
+    // Devolver el objeto completo del usuario en la respuesta
+    return response()->json(['user' => $updatedUser, 'message' => 'Profile successfully updated']);
+}
 
         // GET ALL USERS
      public function getUsers()
@@ -192,6 +227,15 @@ public function updatePassword(Request $request)
         
         $users = User::all();
         return response()->json(['users' => $users], 200);
+    }
+
+// REGISTER
+
+public function register(Request $request, CreateNewUser $creator)
+    {
+        $userCreate = $creator->create($request->all());
+
+        return $userCreate;
     }
 
 }

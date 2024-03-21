@@ -228,3 +228,11 @@ Authorization -> Bearer Token -> Token: ..................
 Authorization -> Bearer Token -> Token: .................. 
 
 
+- POST https://www.qa.apps-369.com/api/update-profile-photo
+
+Authorization -> Bearer Token -> Token: ..................
+
+form-data:
+
+photo --> File
+
