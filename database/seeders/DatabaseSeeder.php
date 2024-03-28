@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use App\Models\User;
+use App\Models\Category;
 use Ramsey\Uuid\Uuid;
 
 class DatabaseSeeder extends Seeder
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
         Permission::create(['name' => 'Employee', 'guard_name' => 'sanctum']),
         Permission::create(['name' => 'Customer', 'guard_name' => 'sanctum']),
     ];
+
 
     // SUPER ADMIN USER
     $superRole = Role::create(['name' => 'Super Admin', 'guard_name' => 'sanctum']);
@@ -99,8 +101,31 @@ class DatabaseSeeder extends Seeder
     $customerUser->assignRole($customerRole);
     // END CUSTOMER USER
 
+    // CATEGORIAS
+    $categories = [
+            ['category_name' => 'Cocina Internacional', 'category_description' => 'Descripción de Cocina Internacional', 'url_icon' => 'url_icon_cocina_internacional.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Comida Rápida', 'category_description' => 'Descripción de Comida Rápida', 'url_icon' => 'url_icon_comida_rapida.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Pizzerías', 'category_description' => 'Descripción de Pizzerías', 'url_icon' => 'url_icon_pizzerias.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Cocina Japonesa', 'category_description' => 'Descripción de Cocina Japonesa', 'url_icon' => 'url_icon_cocina_japonesa.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Carnes y Parrillas', 'category_description' => 'Descripción de Carnes y Parrillas', 'url_icon' => 'url_icon_carnes_parrillas.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Fusión', 'category_description' => 'Descripción de Fusión', 'url_icon' => 'url_icon_fusion.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Cocina Vegetariana', 'category_description' => 'Descripción de Cocina Vegetariana', 'url_icon' => 'url_icon_cocina_vegetariana.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Cocina Mexicana', 'category_description' => 'Descripción de Cocina Mexicana', 'url_icon' => 'url_icon_cocina_mexicana.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Cocina Koreana', 'category_description' => 'Descripción de Cocina Koreana', 'url_icon' => 'url_icon_cocina_koreana.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Cocina Portuguesa', 'category_description' => 'Descripción de Cocina Portuguesa', 'url_icon' => 'url_icon_cocina_portuguesa.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Pastelería y Postres', 'category_description' => 'Descripción de Pastelería y Postres', 'url_icon' => 'url_icon_pasteleria_postres.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Pubs y Vinotecas', 'category_description' => 'Descripción de Pubs y Vinotecas', 'url_icon' => 'url_icon_pubs_vinotecas.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Cafés y Desayunos', 'category_description' => 'Descripción de Cafés y Desayunos', 'url_icon' => 'url_icon_cafes_desayunos.png', 'bgcolor' => '#ffffff', 'user_id' => 1],
+            ['category_name' => 'Mercados y Tiendas', 'category_description' => 'Descripción de Mercados y Tiendas', 'url_icon' => 'url_icon_mercados_tiendas.png', 'bgcolor' => '#ffffff', 'user_id' => 1]
+        ];
 
-    
+        foreach ($categories as $category) {
+            Category::create($category);
+        }
+        // END CATEGORIAS
+
+
+        
 }
 
 
