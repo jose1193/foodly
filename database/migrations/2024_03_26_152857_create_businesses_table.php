@@ -13,17 +13,16 @@ return new class extends Migration
     {
         Schema::create('businesses', function (Blueprint $table) {
             $table->id();
-            $table->uuid('business_uuid');
+            $table->uuid('business_uuid')->unique();
             $table->string('business_logo')->nullable();
-            $table->string('business_name');
+            $table->string('business_name')->nullable();
             $table->string('business_email')->nullable();
+            $table->string('business_phone')->nullable();
             $table->string('business_address')->nullable();
             $table->string('business_zipcode')->nullable();
             $table->string('business_city')->nullable();
             $table->string('business_country')->nullable();
             $table->string('business_website')->nullable();
-            $table->string('business_opening_hours')->nullable();
-            $table->string('business_opening_date')->nullable();
             $table->double('business_latitude', 10, 6)->nullable(); 
             $table->double('business_longitude', 10, 6)->nullable(); 
             $table->foreignId('category_id')->constrained('categories')->onUpdate('cascade')->onDelete('cascade');

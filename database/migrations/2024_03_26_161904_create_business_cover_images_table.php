@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('business_cover_images', function (Blueprint $table) {
             $table->id();
+            $table->uuid('business_image_uuid')->unique();
             $table->string('business_image_path');
             $table->foreignId('business_id')->constrained('businesses')->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();

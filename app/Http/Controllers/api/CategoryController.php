@@ -8,6 +8,10 @@ use App\Models\Category;
 use App\Http\Requests\CategoryRequest;
 use App\Http\Resources\CategoryResource;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\ImageManagerStatic as Image;
+use Ramsey\Uuid\Uuid;
 
 
 class CategoryController extends Controller
@@ -28,34 +32,69 @@ class CategoryController extends Controller
 }
 
 
-    public function store(CategoryRequest $request)
+  public function store(CategoryRequest $request)
 {
     $validatedData = $request->validated();
 
-    // Obtener el ID del usuario actualmente autenticado
-    $userId = Auth::id();
+    // Generar un UUID
+      $validatedData['user_id'] = Auth::id();
+    $validatedData['category_uuid'] = Uuid::uuid4()->toString();
 
-    // Verificar si el usuario tiene el rol de "Permision Manager"
-    if (Auth::user()->hasAnyRole(['Super Admin'])) {
-    $validatedData['user_id'] = $userId;
-    } else {
-        // Si el usuario no tiene el rol adecuado, retornar un error
-        return response()->json(['message' => 'You do not have permission to perform this action'], 403);
-    }
-
+    // Crear la categoría
     $category = Category::create($validatedData);
 
+    // Guardar la imagen si está presente
+    $this->storeCategoryImage($request, $category);
+
+    // Respuesta
     return $category
         ? response()->json(['message' => 'Category created successfully', 'categories' => new CategoryResource($category)], 201)
         : response()->json(['message' => 'Error creating category'], 500);
 }
 
 
+// Save the image if present
+private function storeCategoryImage($request, $category)
+{
+    if ($request->hasFile('category_image_path')) {
+        $image = $request->file('category_image_path');
+        $imageName = $category->category_uuid . '.' . $image->getClientOriginalExtension();
+        
+        // Crear una instancia de Intervention Image
+        $img = Image::make($image->getRealPath());
 
-   public function show($id)
+        // Obtener el ancho y alto de la imagen original
+        $originalWidth = $img->width();
+        $originalHeight = $img->height();
+
+        // Verificar si se necesita redimensionar
+        if ($originalWidth > 700 || $originalHeight > 700) {
+            // Calcular el factor de escala para mantener la relación de aspecto
+            $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
+
+            // Calcular el nuevo ancho y alto para redimensionar la imagen
+            $newWidth = $originalWidth * $scaleFactor;
+            $newHeight = $originalHeight * $scaleFactor;
+
+            // Redimensionar la imagen
+            $img->resize($newWidth, $newHeight);
+        }
+
+        // Guardar la imagen en el sistema de archivos
+        $img->save(storage_path('app/public/category_images/' . $imageName));
+
+        // Asignar la ruta de la imagen al modelo de categoría
+        $category->category_image_path = 'storage/app/public/category_images/' . $imageName;
+        $category->save();
+    }
+}
+
+
+
+   public function show($uuid)
 {
     // Encontrar la categoría por su ID
-    $category = Category::find($id);
+     $category = Category::where('category_uuid', $uuid)->first();
 
     // Devolver una respuesta JSON con la categoría encontrada o un mensaje de error si no se encuentra
     return $category ? 
@@ -67,10 +106,10 @@ class CategoryController extends Controller
 
 
 
-  public function update(CategoryRequest $request, $id)
+  public function update(CategoryRequest $request, $uuid)
 {
     // Encontrar la categoría por su ID
-    $category = Category::find($id);
+    $category = Category::where('category_uuid', $uuid)->first();
 
     // Verificar si se encontró la categoría
     if (!$category) {
@@ -88,14 +127,20 @@ class CategoryController extends Controller
 
 
 
-public function destroy($id)
+public function destroy($uuid)
 {
     // Encontrar la categoría por su ID
-    $category = Category::find($id);
+     $category = Category::where('category_uuid', $uuid)->first();
 
     // Verificar si se encontró la categoría
     if (!$category) {
         return response()->json(['message' => 'Category not found'], 404);
+    }
+
+    // Eliminar las imágenes asociadas si existen
+    if ($category->category_image_path) {
+        $pathWithoutAppPublic = str_replace('storage/app/public/', '', $category->category_image_path);
+        Storage::disk('public')->delete($pathWithoutAppPublic);
     }
 
     // Eliminar la categoría
@@ -104,6 +149,7 @@ public function destroy($id)
     // Devolver una respuesta JSON con un mensaje de éxito
     return response()->json(['message' => 'Category successfully removed'], 200);
 }
+
 
 
 

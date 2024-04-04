@@ -10,7 +10,7 @@ use Intervention\Image\ImageManagerStatic as Image;
 use App\Models\BusinessCoverImage;
 use App\Http\Requests\BusinessCoverImageRequest;
 use App\Http\Resources\BusinessCoverImageResource;
-
+use Ramsey\Uuid\Uuid;
 
 
 
@@ -37,7 +37,7 @@ class BusinessCoverImageController extends Controller
     {
         // Validate the incoming request
         $validatedData = $request->validated();
-        
+         $validatedData['business_image_uuid'] = Uuid::uuid4()->toString();
         // Initialize an array to store stored images
         $storedImages = [];
         
@@ -51,8 +51,9 @@ class BusinessCoverImageController extends Controller
             
             // Create BusinessCoverImage model
             $businessCoverImage = BusinessCoverImage::create([
-                'business_image_path' => 'app/public/'.$storedImagePath,
+                'business_image_path' => 'storage/app/public/'.$storedImagePath,
                 'business_id' => $validatedData['business_id'],
+                'business_image_uuid' => $validatedData['business_image_uuid'],
             ]);
 
             // Add stored image to array
@@ -98,8 +99,8 @@ class BusinessCoverImageController extends Controller
     public function show($business_id)
 {
     // Encontrar todas las imágenes de portada del negocio por su business_id
-    $businessCoverImages = BusinessCoverImage::where('business_id', $business_id)->get();
-
+    
+    $businessCoverImages = BusinessCoverImage::where('business_image_uuid', $uuid)->first();
     // Verificar si se encontraron imágenes de portada del negocio
     if ($businessCoverImages->isEmpty()) {
         return response()->json(['message' => 'Business cover images not found'], 404);
@@ -126,10 +127,10 @@ class BusinessCoverImageController extends Controller
 
 
     
-    public function destroy($id)
+    public function destroy($uuid)
 {
     // Intentar encontrar la imagen de portada del negocio por su ID
-    $businessCoverImage = BusinessCoverImage::find($id);
+    $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->first();
 
     // Verificar si la imagen de portada del negocio fue encontrada
     if (!$businessCoverImage) {
@@ -137,7 +138,7 @@ class BusinessCoverImageController extends Controller
     }
 
     // Eliminar la imagen del almacenamiento
-    $pathWithoutAppPublic = str_replace('app/public/', '', $businessCoverImage->business_image_path);
+    $pathWithoutAppPublic = str_replace('storage/app/public/', '', $businessCoverImage->business_image_path);
     if (Storage::disk('public')->exists($pathWithoutAppPublic)) {
         Storage::disk('public')->delete($pathWithoutAppPublic);
     }

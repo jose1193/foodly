@@ -27,9 +27,9 @@ class CategoryRequest extends FormRequest
 
     return [
          'category_name' => 'required|string|min:3|max:255|unique:categories,category_name,' . $categoryId . ',id',
-        'category_description' => 'required|string|max:255',
-        'url_icon' => 'nullable|string',
-        'bgcolor' => 'nullable|string',
+        'category_description' => 'nullable|string|max:255',
+        'category_image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+       
         
     ];
     }

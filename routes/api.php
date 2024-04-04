@@ -126,30 +126,30 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Routes related to Categories
     
     Route::post('/categories', [CategoryController::class, 'store']);
-    Route::put('/categories-update/{id}', [CategoryController::class, 'update']);
-    Route::get('/categories/{id}', [CategoryController::class, 'show']);
-    Route::delete('/categories-delete/{id}', [CategoryController::class, 'destroy']);
+    Route::put('/categories-update/{uuid}', [CategoryController::class, 'update']);
+    Route::get('/categories/{uuid}', [CategoryController::class, 'show']);
+    Route::delete('/categories-delete/{uuid}', [CategoryController::class, 'destroy']);
     
      // Routes related to Subcategories
     Route::get('/all-subcategories', [SubcategoryController::class, 'index']);
     Route::post('/subcategories', [SubcategoryController::class, 'store']);
-    Route::put('/subcategories-update/{id}', [SubcategoryController::class, 'update']);
-    Route::get('/subcategories/{id}', [SubcategoryController::class, 'show']);
-    Route::delete('/subcategories-delete/{id}', [SubcategoryController::class, 'destroy']);
+    Route::put('/subcategories-update/{uuid}', [SubcategoryController::class, 'update']);
+    Route::get('/subcategories/{uuid}', [SubcategoryController::class, 'show']);
+    Route::delete('/subcategories-delete/{uuid}', [SubcategoryController::class, 'destroy']);
 
     // Routes related to Business
     Route::get('/all-business', [BusinessController::class, 'index']);
     Route::post('/business', [BusinessController::class, 'store']);
-    Route::put('/business-update/{id}', [BusinessController::class, 'update']);
-    Route::get('/business/{id}', [BusinessController::class, 'show']);
-    Route::delete('/business-delete/{id}', [BusinessController::class, 'destroy']);
+    Route::put('/business-update/{uuid}', [BusinessController::class, 'update']);
+    Route::get('/business/{uuid}', [BusinessController::class, 'show']);
+    Route::delete('/business-delete/{uuid}', [BusinessController::class, 'destroy']);
 
     // Routes related to Business Cover Images
     Route::get('/all-businessimages', [BusinessCoverImageController::class, 'index']);
     Route::post('/businessimages', [BusinessCoverImageController::class, 'store']);
-    Route::put('/businessimages-update/{id}', [BusinessCoverImageController::class, 'update']);
-    Route::get('/businessimages/{id}', [BusinessCoverImageController::class, 'show']);
-    Route::delete('/businessimages-delete/{id}', [BusinessCoverImageController::class, 'destroy']);
+    Route::put('/businessimages-update/{uuid}', [BusinessCoverImageController::class, 'update']);
+    Route::get('/businessimages/{uuid}', [BusinessCoverImageController::class, 'show']);
+    Route::delete('/businessimages-delete/{uuid}', [BusinessCoverImageController::class, 'destroy']);
 
 
      

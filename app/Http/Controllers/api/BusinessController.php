@@ -33,9 +33,10 @@ class BusinessController extends Controller
         : response()->json(['message' => 'No businesses found'], 404);
 }
 
- public function show($id)
+ public function show($uuid)
     {
-        $business = Business::findOrFail($id);
+         $business = Business::where('business_uuid', $uuid)->first();
+       
        return $business
         ? response()->json(['message' => 'Business retrieved successfully', 'business' => new BusinessResource($business)], 200)
         : response()->json(['message' => 'Business not found'], 404);
@@ -80,7 +81,7 @@ class BusinessController extends Controller
             // Almacenar la foto en el sistema de archivos
             $image->save(storage_path('app/'.$photoPath));
 
-            $data['business_logo'] = 'app/'.$photoPath;
+            $data['business_logo'] = 'storage/app/'.$photoPath;
         }
 
         $business = Business::create($data);
@@ -98,9 +99,9 @@ class BusinessController extends Controller
 
    
 
-public function update(BusinessRequest $request, $id)
+public function update(BusinessRequest $request, $uuid)
 {
-    $business = Business::find($id);
+     $business = Business::where('business_uuid', $uuid)->first();
     if ($business) {
         $business->update($request->validated());
         return response()->json(['message' => 'Business updated successfully', 'business' => new BusinessResource($business)], 200);
@@ -112,22 +113,22 @@ public function update(BusinessRequest $request, $id)
 
 
 
-public function destroy($id)
+public function destroy($uuid)
 {
-    $business = Business::find($id);
+     $business = Business::where('business_uuid', $uuid)->first();
     if ($business) {
         // Eliminar el logotipo del negocio
         if ($business->business_logo) {
-            $pathWithoutAppPublic = str_replace('app/public/', '', $business->business_logo);
+            $pathWithoutAppPublic = str_replace('storage/app/public/', '', $business->business_logo);
             Storage::disk('public')->delete($pathWithoutAppPublic);
         }
 
-        // Obtener las imágenes de portada asociadas al negocio desde el modelo BusinessCoverImage
-        $coverImages = BusinessCoverImage::where('business_id', $id)->get();
+        // Obtener las im谩genes de portada asociadas al negocio desde el modelo BusinessCoverImage
+        $coverImages = BusinessCoverImage::where('business_id', $business->id)->get();
 
         if (!$coverImages->isEmpty()) {
             foreach ($coverImages as $image) {
-                $pathWithoutAppPublic = str_replace('app/public/', '', $image->business_image_path);
+                $pathWithoutAppPublic = str_replace('storage/app/public/', '', $image->business_image_path);
                 Storage::disk('public')->delete($pathWithoutAppPublic);
                 $image->delete();
             }

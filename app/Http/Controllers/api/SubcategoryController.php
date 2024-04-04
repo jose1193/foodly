@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Subcategory;
 use App\Http\Requests\SubcategoryRequest;
 use App\Http\Resources\SubcategoryResource;
-
+use Ramsey\Uuid\Uuid;
 
 
 class SubcategoryController extends Controller
@@ -30,7 +30,7 @@ class SubcategoryController extends Controller
     public function store(SubcategoryRequest $request)
 {
     $validatedData = $request->validated();
-
+    $validatedData['subcategory_uuid'] = Uuid::uuid4()->toString();
     $subcategory = Subcategory::create($validatedData);
 
     return $subcategory
@@ -40,10 +40,10 @@ class SubcategoryController extends Controller
 
 
 
-    public function show($id)
+    public function show($uuid)
 {
-  
-    $subcategory = Subcategory::find($id);
+    $subcategory = Subcategory::where('subcategory_uuid', $uuid)->first();
+   
     if (!$subcategory) {
         return response()->json(['message' => 'Subcategory not found'], 404);
     }
@@ -54,10 +54,10 @@ class SubcategoryController extends Controller
 
 
 
-   public function update(SubcategoryRequest $request, $id)
+   public function update(SubcategoryRequest $request, $uuid)
 {
     // Encontrar la subcategoría por su ID
-    $subcategory = Subcategory::find($id);
+     $subcategory = Subcategory::where('subcategory_uuid', $uuid)->first();
 
     // Verificar si se encontró la subcategoría
     if (!$subcategory) {
@@ -75,10 +75,10 @@ class SubcategoryController extends Controller
 
 
 
-public function destroy($id)
+public function destroy($uuid)
 {
     // Encontrar la subcategoría por su ID
-    $subcategory = Subcategory::find($id);
+     $subcategory = Subcategory::where('subcategory_uuid', $uuid)->first();
 
     // Verificar si se encontró la subcategoría
     if (!$subcategory) {
