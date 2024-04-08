@@ -144,6 +144,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/business/{uuid}', [BusinessController::class, 'show']);
     Route::delete('/business-delete/{uuid}', [BusinessController::class, 'destroy']);
 
+    // Route related to Update Business Logo
+    Route::post('/business-update-logo/{uuid}', [BusinessController::class, 'updateLogo']);
+
     // Routes related to Business Cover Images
     Route::get('/all-businessimages', [BusinessCoverImageController::class, 'index']);
     Route::post('/businessimages', [BusinessCoverImageController::class, 'store']);

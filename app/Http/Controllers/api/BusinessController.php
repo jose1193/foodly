@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as Image;
 use App\Models\BusinessCoverImage;
 use Illuminate\Support\Facades\Auth;
-
+use App\Http\Requests\UpdateBusinessLogoRequest;
 
 class BusinessController extends Controller
 {
@@ -21,7 +21,7 @@ class BusinessController extends Controller
      // PERMISSIONS USERS
     public function __construct()
 {
-   $this->middleware('check.permission:Manager')->only(['index','create', 'store', 'edit', 'update', 'destroy']);
+   $this->middleware('check.permission:Manager')->only(['index','create', 'store', 'edit', 'update', 'destroy','updateLogo']);
 
 }
 
@@ -144,6 +144,62 @@ public function destroy($uuid)
 }
 
 
+
+
+public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
+{
+    try {
+        $business = Business::where('business_uuid', $uuid)->firstOrFail();
+
+        // Guardar la imagen
+        if ($request->hasFile('business_logo')) {
+            // Obtener el archivo de imagen
+            $image = $request->file('business_logo');
+
+            // Eliminar la imagen anterior si existe
+            if ($business->business_logo) {
+                 $pathWithoutAppPublic = str_replace('storage/app/public/', '', $business->business_logo);
+                Storage::disk('public')->delete($pathWithoutAppPublic);
+            }
+
+            // Guardar la nueva imagen
+            $photoPath = $image->store('public/business_logos');
+
+            // Cargar la imagen utilizando Intervention Image
+            $image = Image::make(storage_path('app/'.$photoPath));
+
+            // Obtener el ancho y alto de la imagen original
+            $originalWidth = $image->width();
+            $originalHeight = $image->height();
+
+            // Verificar si el ancho o el alto son mayores que 700 para redimensionar
+            if ($originalWidth > 700 || $originalHeight > 700) {
+                // Calcular el factor de escala para mantener la relación de aspecto
+                $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
+
+                // Calcular el nuevo ancho y alto para redimensionar la imagen
+                $newWidth = $originalWidth * $scaleFactor;
+                $newHeight = $originalHeight * $scaleFactor;
+
+                // Redimensionar la imagen
+                $image->resize($newWidth, $newHeight);
+            }
+
+            // Guardar la imagen redimensionada
+            $image->save(storage_path('app/'.$photoPath));
+
+            // Actualizar la ruta de la imagen en el modelo Business
+            $business->business_logo = 'storage/app/'.$photoPath;
+            $business->save();
+        }
+
+        // Devolver el recurso actualizado
+        return new BusinessResource($business);
+    } catch (\Exception $e) {
+        // Manejar el error
+        return response()->json(['error' => 'Error updating business profile image'], 500);
+    }
+}
 
 
 
