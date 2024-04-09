@@ -129,7 +129,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/categories-update/{uuid}', [CategoryController::class, 'update']);
     Route::get('/categories/{uuid}', [CategoryController::class, 'show']);
     Route::delete('/categories-delete/{uuid}', [CategoryController::class, 'destroy']);
-    
+    Route::post('/categories-update-images/{uuid}/', [CategoryController::class, 'updateImage']);
+
      // Routes related to Subcategories
     Route::get('/all-subcategories', [SubcategoryController::class, 'index']);
     Route::post('/subcategories', [SubcategoryController::class, 'store']);
@@ -143,18 +144,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/business-update/{uuid}', [BusinessController::class, 'update']);
     Route::get('/business/{uuid}', [BusinessController::class, 'show']);
     Route::delete('/business-delete/{uuid}', [BusinessController::class, 'destroy']);
-
-    // Route related to Update Business Logo
     Route::post('/business-update-logo/{uuid}', [BusinessController::class, 'updateLogo']);
 
     // Routes related to Business Cover Images
     Route::get('/all-businessimages', [BusinessCoverImageController::class, 'index']);
     Route::post('/businessimages', [BusinessCoverImageController::class, 'store']);
-    Route::put('/businessimages-update/{uuid}', [BusinessCoverImageController::class, 'update']);
-    Route::get('/businessimages/{uuid}', [BusinessCoverImageController::class, 'show']);
-    Route::delete('/businessimages-delete/{uuid}', [BusinessCoverImageController::class, 'destroy']);
-
-
+    //Route::put('/businessimages-update/{cover_image_uuid}', [BusinessCoverImageController::class, 'update']);
+    Route::get('/businessimages/{cover_image_uuid}', [BusinessCoverImageController::class, 'show']);
+    Route::delete('/businessimages-delete/{cover_image_uuid}', [BusinessCoverImageController::class, 'destroy']);
+    Route::post('/business-cover-image/{cover_image_uuid}', [BusinessCoverImageController::class, 'updateImage']);
+    
      
 });
 

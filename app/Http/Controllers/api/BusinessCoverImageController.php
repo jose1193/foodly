@@ -11,7 +11,7 @@ use App\Models\BusinessCoverImage;
 use App\Http\Requests\BusinessCoverImageRequest;
 use App\Http\Resources\BusinessCoverImageResource;
 use Ramsey\Uuid\Uuid;
-
+use App\Http\Requests\UpdateBusinessCoverImageRequest;
 
 
 class BusinessCoverImageController extends Controller
@@ -33,70 +33,92 @@ class BusinessCoverImageController extends Controller
     
     }
 
-  public function store(BusinessCoverImageRequest $request)
-    {
-        // Validate the incoming request
-        $validatedData = $request->validated();
-         $validatedData['business_image_uuid'] = Uuid::uuid4()->toString();
-        // Initialize an array to store stored images
-        $storedImages = [];
-        
-        // Store the business cover images
-        foreach ($validatedData['business_image_path'] as $image) {
-            // Store the uploaded image
-            $storedImagePath = $image->store('business_photos', 'public');
-            
-            // Resize the image if necessary using Intervention Image
-            $this->resizeImage($storedImagePath);
-            
-            // Create BusinessCoverImage model
-            $businessCoverImage = BusinessCoverImage::create([
-                'business_image_path' => 'storage/app/public/'.$storedImagePath,
-                'business_id' => $validatedData['business_id'],
-                'business_image_uuid' => $validatedData['business_image_uuid'],
-            ]);
 
-            // Add stored image to array
-            $storedImages[] = new BusinessCoverImageResource($businessCoverImage);
+    
+ public function store(BusinessCoverImageRequest $request)
+{
+    try {
+        // Validar la solicitud entrante
+        $validatedData = $request->validated();
+        $businessImages = [];
+
+        // Almacenar las imágenes de portada del negocio
+        foreach ($validatedData['business_image_path'] as $image) {
+            $storedImagePath = $this->storeAndResizeImage($image);
+            $businessCoverImage = BusinessCoverImage::create([
+                'business_image_path' => $storedImagePath,
+                'business_id' => $validatedData['business_id'],
+                'business_image_uuid' => Uuid::uuid4()->toString(),
+            ]);
+            $businessImages[] = new BusinessCoverImageResource($businessCoverImage);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Business cover images stored successfully',
-            'images' => $storedImages,
+            'images' => $businessImages,
         ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Error storing business cover images'], 500);
     }
-    
+}
 
+public function updateImage(UpdateBusinessCoverImageRequest $request, $cover_image_uuid)
+{
+    try {
+        $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $cover_image_uuid)->firstOrFail();
 
-    private function resizeImage($imagePath)
-    {
-        // Load the image using Intervention Image
-        $image = Image::make(storage_path('app/public/' . $imagePath));
+        if ($request->hasFile('business_image_path')) {
+            $storedImagePath = $this->storeAndResizeImage($request->file('business_image_path'));
+            
+            // Eliminar la imagen anterior si existe
+            $this->deleteOldImage($businessCoverImage->business_image_path);
 
-        // Get the width and height of the original image
-        $originalWidth = $image->width();
-        $originalHeight = $image->height();
-
-        // Check if the width or height are greater than 700 to resize
-        if ($originalWidth > 700 || $originalHeight > 700) {
-            // Calculate the scale factor to maintain the aspect ratio
-            $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
-
-            // Calculate the new width and height for resizing the image
-            $newWidth = $originalWidth * $scaleFactor;
-            $newHeight = $originalHeight * $scaleFactor;
-
-            // Resize the image
-            $image->resize($newWidth, $newHeight);
+            // Actualizar la ruta de la imagen en el modelo BusinessCoverImage
+            $businessCoverImage->business_image_path = $storedImagePath;
+            $businessCoverImage->save();
         }
 
-        // Save the resized image to the file system
-        $image->save(storage_path('app/public/' . $imagePath));
+        return new BusinessCoverImageResource($businessCoverImage);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Error updating business cover image'], 500);
+    }
+}
+
+private function storeAndResizeImage($image)
+{
+    $storedImagePath = $image->store('business_photos', 'public');
+    $this->resizeImage(storage_path('app/public/' . $storedImagePath));
+    return 'storage/app/public/' . $storedImagePath;
+}
+
+private function deleteOldImage($oldImagePath)
+{
+    if ($oldImagePath) {
+        $pathWithoutAppPublic = str_replace('storage/app/public/', '', $oldImagePath);
+        Storage::disk('public')->delete($pathWithoutAppPublic);
+    }
+}
+
+private function resizeImage($imagePath)
+{
+    $image = Image::make($imagePath);
+    $originalWidth = $image->width();
+    $originalHeight = $image->height();
+
+    if ($originalWidth > 700 || $originalHeight > 700) {
+        $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
+        $newWidth = $originalWidth * $scaleFactor;
+        $newHeight = $originalHeight * $scaleFactor;
+        $image->resize($newWidth, $newHeight);
     }
 
+    $image->save($imagePath);
+}
 
-    public function show($business_id)
+
+
+    public function show($cover_image_uuid)
 {
     // Encontrar todas las imágenes de portada del negocio por su business_id
     
@@ -127,10 +149,10 @@ class BusinessCoverImageController extends Controller
 
 
     
-    public function destroy($uuid)
+    public function destroy($cover_image_uuid)
 {
     // Intentar encontrar la imagen de portada del negocio por su ID
-    $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->first();
+    $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $cover_image_uuid)->first();
 
     // Verificar si la imagen de portada del negocio fue encontrada
     if (!$businessCoverImage) {
@@ -148,8 +170,6 @@ class BusinessCoverImageController extends Controller
 
     return response()->json(['message' => 'Business cover image deleted successfully']);
 }
-
-
 
 
    
