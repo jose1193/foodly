@@ -25,7 +25,7 @@ class PhotoUploadRequest extends FormRequest
     public function rules()
     {
         return [
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Ejemplo de reglas, ajusta según tus necesidades
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048', // Ejemplo de reglas, ajusta según tus necesidades
         ];
     }
 }

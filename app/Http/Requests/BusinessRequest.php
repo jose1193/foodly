@@ -26,13 +26,13 @@ class BusinessRequest extends FormRequest
         
         return [
             'business_name' => 'required|string|min:3|max:255',
-            'business_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10000',
+            'business_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10048',
             'business_email' => 'nullable|email',
             'business_phone' => 'nullable|string|min:5|max:50',
-            'business_address' => 'nullable|string',
-            'business_zipcode' => 'nullable|string',
-            'business_city' => 'nullable|string',
-            'business_country' => 'nullable|string',
+            'business_address' => 'nullable|string|min:5|max:50',
+            'business_zipcode' => 'nullable|string|min:2|max:50',
+            'business_city' => 'nullable|string|min:3|max:50',
+            'business_country' => 'nullable|string|min:3|max:50',
             'business_website' => 'nullable|string',
             'business_latitude' => 'nullable', 
             'business_longitude' => 'nullable',

@@ -24,7 +24,7 @@ class UpdateCategoryImageRequest extends FormRequest
     public function rules()
     {
         return [
-            'category_image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:5048', // ajusta según tus necesidades
+            'category_image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048', // ajusta según tus necesidades
         ];
     }
 

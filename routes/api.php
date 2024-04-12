@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\BusinessController;
 use App\Http\Controllers\Api\BusinessCoverImageController;
 use App\Http\Controllers\Api\CheckUsernameController;
 use App\Http\Controllers\Api\CheckEmailController;
+use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\BranchCoverImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -147,13 +149,27 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/business-update-logo/{uuid}', [BusinessController::class, 'updateLogo']);
 
     // Routes related to Business Cover Images
-    Route::get('/all-businessimages', [BusinessCoverImageController::class, 'index']);
-    Route::post('/businessimages', [BusinessCoverImageController::class, 'store']);
-    //Route::put('/businessimages-update/{cover_image_uuid}', [BusinessCoverImageController::class, 'update']);
-    Route::get('/businessimages/{cover_image_uuid}', [BusinessCoverImageController::class, 'show']);
-    Route::delete('/businessimages-delete/{cover_image_uuid}', [BusinessCoverImageController::class, 'destroy']);
-    Route::post('/business-cover-image/{cover_image_uuid}', [BusinessCoverImageController::class, 'updateImage']);
+    Route::get('/business-cover-images-all', [BusinessCoverImageController::class, 'index']);
+    Route::post('/business-cover-images', [BusinessCoverImageController::class, 'store']);
+    Route::get('/business-cover-images/{cover_image_uuid}', [BusinessCoverImageController::class, 'show']);
+    //Route::put('/business-cover-images/{cover_image_uuid}', [BusinessCoverImageController::class, 'update']);
+    Route::delete('/business-cover-images-delete/{cover_image_uuid}', [BusinessCoverImageController::class, 'destroy']);
+    Route::post('/business-cover-images-update/{cover_image_uuid}/update-image', [BusinessCoverImageController::class, 'updateImage']);
     
+        // Routes related to Business
+    Route::get('/all-branch', [BranchController::class, 'index']);
+    Route::post('/branch', [BranchController::class, 'store']);
+    Route::put('/branch-update/{uuid}', [BranchController::class, 'update']);
+    Route::get('/branch/{uuid}', [BranchController::class, 'show']);
+    Route::post('/branch-update-logo/{uuid}', [BranchController::class, 'updateLogo']);
+    Route::delete('/branch-delete/{uuid}', [BranchController::class, 'destroy']);
+    
+    // Routes related to Branch Cover Images
+    Route::get('/branch-cover-images-all', [BranchCoverImageController::class, 'index']);
+    Route::post('/branch-cover-images', [BranchCoverImageController::class, 'store']);
+    Route::get('/branch-cover-images/{uuid}', [BranchCoverImageController::class, 'show']);
+    Route::put('/branch-cover-images-update/{uuid}/update-image', [BranchCoverImageController::class, 'updateImage']);
+    Route::delete('/branch-cover-images-delete/{uuid}', [BranchCoverImageController::class, 'destroy']);
      
 });
 

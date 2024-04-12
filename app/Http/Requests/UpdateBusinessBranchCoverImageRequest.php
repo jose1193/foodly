@@ -3,12 +3,10 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
-
-
-class BusinessCoverImageRequest extends FormRequest
+class UpdateBusinessBranchCoverImageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,13 +23,12 @@ class BusinessCoverImageRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'business_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048',
-            'business_id' => 'required|exists:businesses,id',
+         return [
+            'branch_image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048', // ajusta según tus necesidades
         ];
     }
 
-public function failedValidation(Validator $validator)
+     public function failedValidation(Validator $validator)
 
     {
 
@@ -41,18 +38,9 @@ public function failedValidation(Validator $validator)
 
             'message'   => 'Validation errors',
 
-            'business_images'      => $validator->errors()
+            'branch_image'      => $validator->errors()
 
         ]));
 
     }
-
-    public function messages()
-{
-    return [
-        
-        'business_id.exists' => 'The specified business does not exist.',
-        
-    ];
-}
 }

@@ -21,6 +21,7 @@ class BusinessCoverImageResource extends JsonResource
             'business_id' => $this->business->business_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'business' => $this->business,
         ];
     }
 }

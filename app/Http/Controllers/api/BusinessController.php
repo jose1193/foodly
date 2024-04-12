@@ -100,7 +100,7 @@ public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
         return new BusinessResource($business);
     } catch (\Exception $e) {
         // Manejar el error
-        return response()->json(['error' => 'Error updating business profile image'], 500);
+        return response()->json(['error' => 'Error updating business logo image'], 500);
     }
 }
 

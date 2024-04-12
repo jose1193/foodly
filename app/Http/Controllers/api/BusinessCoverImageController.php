@@ -56,12 +56,14 @@ class BusinessCoverImageController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Business cover images stored successfully',
-            'images' => $businessImages,
+            'business_images' => $businessImages,
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error storing business cover images'], 500);
     }
 }
+
+
 
 public function updateImage(UpdateBusinessCoverImageRequest $request, $cover_image_uuid)
 {
@@ -79,11 +81,16 @@ public function updateImage(UpdateBusinessCoverImageRequest $request, $cover_ima
             $businessCoverImage->save();
         }
 
-        return new BusinessCoverImageResource($businessCoverImage);
+        return response()->json([
+            'success' => true,
+            'message' => 'Business cover image updated successfully',
+            'business_images' => new BusinessCoverImageResource($businessCoverImage)
+        ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error updating business cover image'], 500);
     }
 }
+
 
 private function storeAndResizeImage($image)
 {
@@ -120,20 +127,25 @@ private function resizeImage($imagePath)
 
     public function show($cover_image_uuid)
 {
-    // Encontrar todas las imágenes de portada del negocio por su business_id
-    
-    $businessCoverImages = BusinessCoverImage::where('business_image_uuid', $uuid)->first();
-    // Verificar si se encontraron imágenes de portada del negocio
-    if ($businessCoverImages->isEmpty()) {
-        return response()->json(['message' => 'Business cover images not found'], 404);
+    try {
+        // Encontrar todas las imágenes de portada del negocio por su business_image_uuid
+        $businessCoverImages = BusinessCoverImage::where('business_image_uuid', $cover_image_uuid)->get();
+
+        // Verificar si se encontraron imágenes de portada del negocio
+        if ($businessCoverImages->isEmpty()) {
+            return response()->json(['message' => 'Business cover images not found'], 404);
+        }
+
+        // Crear una colección de recursos para las imágenes de portada del negocio
+        $businessCoverImagesResources = BusinessCoverImageResource::collection($businessCoverImages);
+
+        // Devolver la colección de recursos de imágenes de portada del negocio bajo la clave 'images'
+        return response()->json(['images' => $businessCoverImagesResources]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Error retrieving business cover images'], 500);
     }
-
-    // Crear una colección de recursos para las imágenes de portada del negocio
-    $businessCoverImagesResources = BusinessCoverImageResource::collection($businessCoverImages);
-
-    // Devolver la colección de recursos de imágenes de portada del negocio bajo la clave 'images'
-    return response()->json(['images' => $businessCoverImagesResources]);
 }
+
 
 
 

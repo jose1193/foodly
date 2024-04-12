@@ -7,8 +7,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
 
-
-class BusinessCoverImageRequest extends FormRequest
+class BusinessBranchCoverImageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,12 +25,12 @@ class BusinessCoverImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'business_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048',
-            'business_id' => 'required|exists:businesses,id',
+            'branch_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048',
+            'branch_id' => 'required|exists:business_branches,id',
         ];
     }
 
-public function failedValidation(Validator $validator)
+    public function failedValidation(Validator $validator)
 
     {
 
@@ -41,18 +40,9 @@ public function failedValidation(Validator $validator)
 
             'message'   => 'Validation errors',
 
-            'business_images'      => $validator->errors()
+            'branch_images'      => $validator->errors()
 
         ]));
 
     }
-
-    public function messages()
-{
-    return [
-        
-        'business_id.exists' => 'The specified business does not exist.',
-        
-    ];
-}
 }

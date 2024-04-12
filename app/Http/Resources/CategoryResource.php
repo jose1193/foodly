@@ -14,6 +14,7 @@ class CategoryResource extends JsonResource
      */
     public function toArray($request)
     {
+        $subcategories = $this->subcategories()->exists() ? $this->subcategories : [];
         return [
             'id' => $this->id,
             'category_uuid' => $this->category_uuid,
@@ -23,6 +24,7 @@ class CategoryResource extends JsonResource
             'user_id' => $this->user->id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'subcategories' => $subcategories
         ];
     }
 }

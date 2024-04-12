@@ -5,24 +5,24 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class SubcategoryResource extends JsonResource
+class BusinessBranchCoverImageResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
      * @return array<string, mixed>
      */
-    public function toArray($request)
+     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
-            'subcategory_uuid' => $this->subcategory_uuid,
-            'subcategory_name' => $this->subcategory_name,
-            'subcategory_description' => $this->subcategory_description,
-            'category_id' => $this->category_id,
+            'branch_image_uuid' => $this->branch_image_uuid,
+            'branch_image_path' => asset($this->branch_image_path),
+            'branch_id' => $this->branch->branch_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'category' => $this->category,
+            'branch' => $this->branch,
+            
         ];
     }
 }

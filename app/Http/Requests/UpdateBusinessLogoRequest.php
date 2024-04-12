@@ -25,7 +25,7 @@ class UpdateBusinessLogoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'business_logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:50000', // ajusta según tus necesidades
+            'business_logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048', // ajusta según tus necesidades
         ];
     }
 
