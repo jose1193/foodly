@@ -21,7 +21,7 @@ class BusinessBranchCoverImageResource extends JsonResource
             'branch_id' => $this->branch->branch_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'branch' => $this->branch,
+            //'branch' => $this->branch,
             
         ];
     }
