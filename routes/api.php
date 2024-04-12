@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\CheckUsernameController;
 use App\Http\Controllers\Api\CheckEmailController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BranchCoverImageController;
+use App\Http\Controllers\Api\BiometricAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -171,6 +172,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/branch-cover-images-update/{uuid}/update-image', [BranchCoverImageController::class, 'updateImage']);
     Route::delete('/branch-cover-images-delete/{uuid}', [BranchCoverImageController::class, 'destroy']);
      
+   
+    // Routes related to Biometric Login
+    Route::post('/biometric-login', [BiometricAuthController::class, 'store']);
+
 });
 
 //Route::fallback([ErrorController::class, 'notFound']);
