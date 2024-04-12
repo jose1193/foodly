@@ -29,7 +29,7 @@ class BusinessCoverImageController extends Controller
         
 
          $businessCoverImages = BusinessCoverImage::orderBy('id', 'desc')->get();
-        return response()->json(['business_image' => BusinessCoverImageResource::collection($businessCoverImages)]);
+        return response()->json(['business_cover_images' => BusinessCoverImageResource::collection($businessCoverImages)]);
     
     }
 
@@ -56,7 +56,7 @@ class BusinessCoverImageController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Business cover images stored successfully',
-            'business_images' => $businessImages,
+            'business_cover_images' => $businessImages,
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error storing business cover images'], 500);
@@ -84,7 +84,7 @@ public function updateImage(UpdateBusinessCoverImageRequest $request, $cover_ima
         return response()->json([
             'success' => true,
             'message' => 'Business cover image updated successfully',
-            'business_images' => new BusinessCoverImageResource($businessCoverImage)
+            'business_cover_images' => new BusinessCoverImageResource($businessCoverImage)
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error updating business cover image'], 500);

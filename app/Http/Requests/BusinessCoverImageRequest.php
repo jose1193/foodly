@@ -41,7 +41,7 @@ public function failedValidation(Validator $validator)
 
             'message'   => 'Validation errors',
 
-            'business_images'      => $validator->errors()
+            'business_cover_images'      => $validator->errors()
 
         ]));
 

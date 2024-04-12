@@ -62,8 +62,9 @@ class UserResource extends JsonResource {
             'business_latitude' => $business->business_latitude,
             'business_longitude' => $business->business_longitude,
             'category_id' => $business->category_id,
+            'category' => $business->category,
             'business_cover_images' => $coverImages,
-            'branch' => $branch,
+            'business_branch' => $branch,
         ];
     })->toArray(); // Convertir la colección en un array
 

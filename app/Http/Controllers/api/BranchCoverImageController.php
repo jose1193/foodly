@@ -30,7 +30,7 @@ class BranchCoverImageController extends Controller
         
 
          $branchCoverImages = BranchCoverImage::orderBy('id', 'desc')->get();
-        return response()->json(['branch_images' => BusinessBranchCoverImageResource::collection($branchCoverImages)]);
+        return response()->json(['branch_cover_images' => BusinessBranchCoverImageResource::collection($branchCoverImages)]);
     
     }
 
@@ -60,7 +60,7 @@ class BranchCoverImageController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Branch cover images stored successfully',
-            'branch_images' => $branchImages,
+            'branch_cover_images' => $branchImages,
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error storing branch cover images'], 500);
@@ -87,7 +87,7 @@ public function updateImage(UpdateBusinessBranchCoverImageRequest $request, $uui
         return response()->json([
             'success' => true,
             'message' => 'Branch cover image updated successfully',
-            'branch_images' => new BusinessBranchCoverImageResource($branchCoverImage)
+            'branch_cover_images' => new BusinessBranchCoverImageResource($branchCoverImage)
         ]);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error updating business cover image'], 500);

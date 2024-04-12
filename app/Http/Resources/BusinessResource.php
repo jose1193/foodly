@@ -31,9 +31,10 @@ class BusinessResource extends JsonResource
             'business_website' => $this->business_website,
             'business_latitude' => $this->business_latitude,
             'business_longitude' => $this->business_longitude,
-            'category_id' => $this->category->id,
+            'category_id' => $this->category_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            //'business_branch' => $this->businessBranch,
         ];
     }
 
