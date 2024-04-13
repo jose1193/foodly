@@ -44,6 +44,13 @@ class Promotions extends Controller
 
 
             $promotion = Promotion::create($request->all());
+
+            //agregamos la imagen
+            if ($request->hasFile('promotion_image')) {
+                $promotion->addMediaFromRequest('promotion_image')
+                    ->toMediaCollection('promotion_images');
+            }
+
             return $promotion ? response()->json([
                 'message' => 'Promoción creada correctamente',
                 'promotion' => new PromotionsResource($promotion)
