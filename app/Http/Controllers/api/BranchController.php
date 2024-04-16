@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BusinessBranch;
 use App\Http\Requests\BranchRequest;
 use App\Http\Resources\BranchResource;
-use App\Models\BusinessBranchCoverImage;
+use App\Models\BranchCoverImage;
 use App\Models\Business;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UpdateBranchLogoRequest;
 
+use App\Helpers\ImageHelper;
 
 class BranchController extends Controller
 {
@@ -58,41 +59,43 @@ class BranchController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(BranchRequest $request)
+
+   public function store(BranchRequest $request)
 {
     try {
+        // Validar la solicitud y obtener los datos validados
         $data = $request->validated();
 
         // Asegurarse de que el business_id enviado pertenece al usuario autenticado
-        if ($request->has('business_id')) {
-            $business = Auth::user()->businesses()->where('id', $request->input('business_id'))->first();
-            if (!$business) {
-                return response()->json(['message' => 'Unauthorized. Business does not belong to authenticated user.'], 401);
-            }
-        } else {
+        if (!$request->has('business_id')) {
             return response()->json(['message' => 'business_id is required.'], 400);
         }
 
-        // Generar un UUID
-        $data['branch_uuid'] = Uuid::uuid4()->toString();
-
-        // Guardar la foto del negocio
-        if ($request->hasFile('branch_logo')) {
-            $photoPath = $this->storeImage($request->file('branch_logo'), 'public/branch_logo');
-            $this->resizeImage(storage_path('app/'.$photoPath));
-            $data['branch_logo'] = 'storage/app/'.$photoPath;
+        $business = Auth::user()->businesses()->find($request->input('business_id'));
+        if (!$business) {
+            return response()->json(['message' => 'Unauthorized. Business does not belong to authenticated user.'], 401);
         }
 
+        // Generar un UUID para la sucursal del negocio
+        $data['branch_uuid'] = Uuid::uuid4()->toString();
+
+        // Guardar la foto del branch si existe
+        if ($request->hasFile('branch_logo')) {
+            $photoPath = ImageHelper::storeAndResize($request->file('branch_logo'), 'public/branch_logos');
+            $data['branch_logo'] = $photoPath;
+        }
+
+        // Crear la sucursal del negocio
         $business_branch = BusinessBranch::create($data);
 
-        return $business_branch
-            ? response()->json(['message' => 'Business Branch created successfully', 'business_branch' => new BranchResource($business_branch)], 201)
-            : response()->json(['message' => 'Error creating business branch'], 500);
+        // Devolver una respuesta adecuada
+        return response()->json(['message' => 'Business Branch created successfully', 'business_branch' => new BranchResource($business_branch)], 201);
     } catch (\Exception $e) {
-        // Manejo de excepciones
+        // Manejar errores inesperados
         return response()->json(['message' => 'An error occurred: '.$e->getMessage()], 500);
     }
 }
+
 
 
 
@@ -102,24 +105,19 @@ public function updateLogo(UpdateBranchLogoRequest $request, $uuid)
     try {
         $business_branch = BusinessBranch::where('branch_uuid', $uuid)->firstOrFail();
 
-       
         if ($request->hasFile('branch_logo')) {
-            // Obtener el archivo de imagen
-            $image = $request->file('branch_logo');
-
             // Eliminar la imagen anterior si existe
             if ($business_branch->branch_logo) {
                 $this->deleteImage($business_branch->branch_logo);
             }
 
             // Guardar la nueva imagen
-            $photoPath = $this->storeImage($image, 'public/branch_logo');
-            $this->resizeImage(storage_path('app/'.$photoPath));
-
-            // Actualizar la ruta de la imagen en el modelo Business
-            $business_branch->branch_logo = 'storage/app/'.$photoPath;
-            $business_branch->save();
+            $photoPath = ImageHelper::storeAndResize($request->file('branch_logo'), 'public/branch_logos');
+            $business_branch->branch_logo = $photoPath;
         }
+
+        // Guardar cambios en el modelo Business Branch
+        $business_branch->save();
 
         // Devolver el recurso actualizado
         return response()->json(['message' => 'Business Branch Logo updated successfully', 'business_branch' => new BranchResource($business_branch)], 200);
@@ -130,12 +128,6 @@ public function updateLogo(UpdateBranchLogoRequest $request, $uuid)
 }
 
 
-private function storeImage($image, $storagePath)
-{
-    // Guardar la imagen
-    $photoPath = $image->store($storagePath);
-    return $photoPath;
-}
 
 private function deleteImage($imagePath)
 {
@@ -145,21 +137,6 @@ private function deleteImage($imagePath)
 }
 
 
-private function resizeImage($imagePath)
-{
-    // Redimensionar la imagen si es necesario
-    $image = Image::make($imagePath);
-    $originalWidth = $image->width();
-    $originalHeight = $image->height();
-
-    if ($originalWidth > 700 || $originalHeight > 700) {
-        $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
-        $newWidth = $originalWidth * $scaleFactor;
-        $newHeight = $originalHeight * $scaleFactor;
-        $image->resize($newWidth, $newHeight);
-        $image->save();
-    }
-}
     /**
      * Display the specified resource.
      */
@@ -219,8 +196,8 @@ public function destroy($uuid)
             Storage::disk('public')->delete($pathWithoutAppPublic);
         }
 
-        // Obtener las im谩genes de portada asociadas al negocio desde el modelo BusinessCoverImage
-        $coverImages = BusinessBranchCoverImage::where('branch_id', $business_branch->id)->get();
+        // Obtener las imagenes de portada asociadas al negocio desde el modelo BusinessCoverImage
+        $coverImages = BranchCoverImage::where('branch_id', $business_branch->id)->get();
 
         if (!$coverImages->isEmpty()) {
             foreach ($coverImages as $image) {

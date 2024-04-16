@@ -15,6 +15,9 @@ use App\Models\BusinessCoverImage;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UpdateBusinessLogoRequest;
 
+use App\Helpers\ImageHelper;
+
+
 class BusinessController extends Controller
 {
 
@@ -60,39 +63,43 @@ class BusinessController extends Controller
 
    public function store(BusinessRequest $request)
 {
-    try {
-        $data = $request->validated();
+    // Validar la solicitud y obtener los datos validados
+    $data = $request->validated();
 
+    try {
         // Generar un UUID
         $data['business_uuid'] = Uuid::uuid4()->toString();
 
         // Obtener el ID del usuario actualmente autenticado
         $data['user_id'] = Auth::id();
 
-        // Guardar la foto del negocio
+        // Guardar la foto del negocio si existe
         if ($request->hasFile('business_logo')) {
-            $photoPath = $this->storeImage($request->file('business_logo'), 'public/business_logos');
-            $this->resizeImage(storage_path('app/'.$photoPath));
-            $data['business_logo'] = 'storage/app/'.$photoPath;
+            $image = $request->file('business_logo');
+            $photoPath = ImageHelper::storeAndResize($image, 'public/business_logos');
+            $data['business_logo'] = $photoPath;
         }
 
+        // Crear el negocio
         $business = Business::create($data);
 
+        // Devolver una respuesta adecuada
         return $business
             ? response()->json(['message' => 'Business created successfully', 'business' => new BusinessResource($business)], 201)
             : response()->json(['message' => 'Error creating business'], 500);
     } catch (\Exception $e) {
-        // Manejo de excepciones
+        // Manejar errores inesperados
         return response()->json(['message' => 'An error occurred: '.$e->getMessage()], 500);
     }
 }
+
+
 
 public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
 {
     try {
         $business = Business::where('business_uuid', $uuid)->firstOrFail();
 
-       
         if ($request->hasFile('business_logo')) {
             // Obtener el archivo de imagen
             $image = $request->file('business_logo');
@@ -102,12 +109,11 @@ public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
                 $this->deleteImage($business->business_logo);
             }
 
-            // Guardar la nueva imagen
-            $photoPath = $this->storeImage($image, 'public/business_logos');
-            $this->resizeImage(storage_path('app/'.$photoPath));
+            // Guardar la nueva imagen y obtener la ruta
+            $photoPath = ImageHelper::storeAndResize($image, 'public/business_logos');
 
             // Actualizar la ruta de la imagen en el modelo Business
-            $business->business_logo = 'storage/app/'.$photoPath;
+            $business->business_logo = $photoPath;
             $business->save();
         }
 
@@ -115,16 +121,12 @@ public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
         return new BusinessResource($business);
     } catch (\Exception $e) {
         // Manejar el error
-        return response()->json(['error' => 'Error updating business logo image'], 500);
+        return response()->json(['error' => $e->getMessage()], 500);
     }
 }
 
-private function storeImage($image, $storagePath)
-{
-    // Guardar la imagen
-    $photoPath = $image->store($storagePath);
-    return $photoPath;
-}
+
+
 
 private function deleteImage($imagePath)
 {
@@ -135,21 +137,7 @@ private function deleteImage($imagePath)
 
 
 
-private function resizeImage($imagePath)
-{
-    // Redimensionar la imagen si es necesario
-    $image = Image::make($imagePath);
-    $originalWidth = $image->width();
-    $originalHeight = $image->height();
 
-    if ($originalWidth > 700 || $originalHeight > 700) {
-        $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
-        $newWidth = $originalWidth * $scaleFactor;
-        $newHeight = $originalHeight * $scaleFactor;
-        $image->resize($newWidth, $newHeight);
-        $image->save();
-    }
-}
 
 
    

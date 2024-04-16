@@ -15,6 +15,9 @@ use Ramsey\Uuid\Uuid;
 use App\Http\Requests\UpdateBusinessBranchCoverImageRequest;
 use Illuminate\Support\Facades\Auth;
 
+use App\Helpers\ImageHelper;
+
+
 class BranchCoverImageController extends Controller
 {
     // PERMISSIONS USERS
@@ -73,12 +76,17 @@ public function store(BusinessBranchCoverImageRequest $request)
 
         // Almacenar las imágenes de portada del negocio
         foreach ($validatedData['branch_image_path'] as $image) {
-            $storedImagePath = $this->storeAndResizeImage($image);
+            // Almacenar y redimensionar la imagen
+            $storedImagePath = ImageHelper::storeAndResize($image, 'public/branch_photos');
+
+            // Crear una nueva instancia de BranchCoverImage y guardarla en la base de datos
             $branchCoverImage = BranchCoverImage::create([
                 'branch_image_path' => $storedImagePath,
                 'branch_id' => $validatedData['branch_id'],
                 'branch_image_uuid' => Uuid::uuid4()->toString(),
             ]);
+
+            // Crear una instancia de BusinessBranchCoverImageResource para la respuesta JSON
             $branchImages[] = new BusinessBranchCoverImageResource($branchCoverImage);
         }
 
@@ -94,19 +102,19 @@ public function store(BusinessBranchCoverImageRequest $request)
 
 
 
-
 public function updateImage(UpdateBusinessBranchCoverImageRequest $request, $uuid)
 {
     try {
         $branchCoverImage = BranchCoverImage::where('branch_image_uuid', $uuid)->firstOrFail();
 
         if ($request->hasFile('branch_image_path')) {
-            $storedImagePath = $this->storeAndResizeImage($request->file('branch_image_path'));
+            // Almacenar y redimensionar la nueva imagen
+            $storedImagePath = ImageHelper::storeAndResize($request->file('branch_image_path'), 'public/branch_photos');
             
             // Eliminar la imagen anterior si existe
             $this->deleteOldImage($branchCoverImage->branch_image_path);
 
-            // Actualizar la ruta de la imagen en el modelo branchCoverImage
+            // Actualizar la ruta de la imagen en el modelo BranchCoverImage
             $branchCoverImage->branch_image_path = $storedImagePath;
             $branchCoverImage->save();
         }
@@ -122,12 +130,6 @@ public function updateImage(UpdateBusinessBranchCoverImageRequest $request, $uui
 }
 
 
-private function storeAndResizeImage($image)
-{
-    $storedImagePath = $image->store('branch_photos', 'public');
-    $this->resizeImage(storage_path('app/public/' . $storedImagePath));
-    return 'storage/app/public/' . $storedImagePath;
-}
 
 private function deleteOldImage($oldImagePath)
 {
@@ -137,21 +139,6 @@ private function deleteOldImage($oldImagePath)
     }
 }
 
-private function resizeImage($imagePath)
-{
-    $image = Image::make($imagePath);
-    $originalWidth = $image->width();
-    $originalHeight = $image->height();
-
-    if ($originalWidth > 700 || $originalHeight > 700) {
-        $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
-        $newWidth = $originalWidth * $scaleFactor;
-        $newHeight = $originalHeight * $scaleFactor;
-        $image->resize($newWidth, $newHeight);
-    }
-
-    $image->save($imagePath);
-}
 
     /**
      * Display the specified resource.

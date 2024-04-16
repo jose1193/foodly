@@ -157,7 +157,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/business-cover-images/{cover_image_uuid}', [BusinessCoverImageController::class, 'show']);
     //Route::put('/business-cover-images/{cover_image_uuid}', [BusinessCoverImageController::class, 'update']);
     Route::delete('/business-cover-images-delete/{cover_image_uuid}', [BusinessCoverImageController::class, 'destroy']);
-    Route::post('/business-cover-images-update/{cover_image_uuid}/update-image', [BusinessCoverImageController::class, 'updateImage']);
+    Route::post('/business-cover-images-update/{cover_image_uuid}', [BusinessCoverImageController::class, 'updateImage']);
     
         // Routes related to Business
     Route::get('/branch', [BranchController::class, 'index']);
@@ -171,7 +171,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/branch-cover-images', [BranchCoverImageController::class, 'index']);
     Route::post('/branch-cover-images-store', [BranchCoverImageController::class, 'store']);
     Route::get('/branch-cover-images/{uuid}', [BranchCoverImageController::class, 'show']);
-    Route::put('/branch-cover-images-update/{uuid}/update-image', [BranchCoverImageController::class, 'updateImage']);
+    Route::post('/branch-cover-images-update/{uuid}', [BranchCoverImageController::class, 'updateImage']);
     Route::delete('/branch-cover-images-delete/{uuid}', [BranchCoverImageController::class, 'destroy']);
      
    

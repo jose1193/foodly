@@ -14,6 +14,9 @@ use Intervention\Image\ImageManagerStatic as Image;
 use Ramsey\Uuid\Uuid;
 use App\Http\Requests\UpdateCategoryImageRequest;
 
+use App\Helpers\ImageHelper;
+
+
 class CategoryController extends Controller
 {
 
@@ -36,66 +39,31 @@ class CategoryController extends Controller
 {
     $validatedData = $request->validated();
 
-    // Generar un UUID
-      $validatedData['user_id'] = Auth::id();
-    $validatedData['category_uuid'] = Uuid::uuid4()->toString();
+    try {
+        // Generar un UUID y obtener el ID del usuario autenticado
+        $validatedData['user_id'] = Auth::id();
+        $validatedData['category_uuid'] = Uuid::uuid4()->toString();
 
-    // Crear la categoría
-    $category = Category::create($validatedData);
+        // Crear la categoría
+        $category = Category::create($validatedData);
 
-    // Guardar la imagen si está presente
-    $this->storeCategoryImage($request, $category);
+        // Guardar la imagen si está presente
+        if ($request->hasFile('category_image_path')) {
+            $imagePath = ImageHelper::storeAndResize($request->file('category_image_path'), 'public/categories_images');
+            $category->category_image_path = $imagePath;
+            $category->save();
+        }
 
-    // Respuesta
-    return $category
-        ? response()->json(['message' => 'Category created successfully', 'categories' => new CategoryResource($category)], 201)
-        : response()->json(['message' => 'Error creating category'], 500);
-}
-
-
-
-private function storeCategoryImage($request, $category)
-{
-    if ($request->hasFile('category_image_path')) {
-        $image = $request->file('category_image_path');
-        $imageName = $category->category_uuid . '.' . $image->getClientOriginalExtension();
-        
-        // Guardar la imagen redimensionada
-        $this->resizeImage($image, storage_path('app/public/category_images/' . $imageName));
-
-        // Asignar la ruta de la imagen al modelo de categoría
-        $category->category_image_path = 'storage/app/public/category_images/' . $imageName;
-        $category->save();
+        // Respuesta
+        return $category
+            ? response()->json(['message' => 'Category created successfully', 'categories' => new CategoryResource($category)], 201)
+            : response()->json(['message' => 'Error creating category'], 500);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'An error occurred while creating category: '.$e->getMessage()], 500);
     }
 }
 
 
-
-private function resizeImage($image, $path)
-{
-    // Crear una instancia de Intervention Image
-    $img = Image::make($image->getRealPath());
-
-    // Obtener el ancho y alto de la imagen original
-    $originalWidth = $img->width();
-    $originalHeight = $img->height();
-
-    // Verificar si se necesita redimensionar
-    if ($originalWidth > 700 || $originalHeight > 700) {
-        // Calcular el factor de escala para mantener la relación de aspecto
-        $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
-
-        // Calcular el nuevo ancho y alto para redimensionar la imagen
-        $newWidth = $originalWidth * $scaleFactor;
-        $newHeight = $originalHeight * $scaleFactor;
-
-        // Redimensionar la imagen
-        $img->resize($newWidth, $newHeight);
-    }
-
-    // Guardar la imagen en el sistema de archivos
-    $img->save($path);
-}
 
 
 public function updateImage(UpdateCategoryImageRequest $request, $uuid)
@@ -103,7 +71,7 @@ public function updateImage(UpdateCategoryImageRequest $request, $uuid)
     try {
         $category = Category::where('category_uuid', $uuid)->firstOrFail();
 
-        // Guardar la imagen
+        // Guardar la imagen si está presente
         if ($request->hasFile('category_image_path')) {
             // Obtener el archivo de imagen
             $image = $request->file('category_image_path');
@@ -114,11 +82,8 @@ public function updateImage(UpdateCategoryImageRequest $request, $uuid)
                 Storage::disk('public')->delete($pathWithoutAppPublic);
             }
 
-            // Guardar la nueva imagen
-            $photoPath = $image->store('public/category_images');
-
-            // Redimensionar la imagen
-            $this->resizeImage($image, storage_path('app/' . $photoPath));
+            // Guardar y redimensionar la nueva imagen utilizando ImageHelper
+            $photoPath = ImageHelper::storeAndResize($image, 'public/categories_images');
 
             // Actualizar la ruta de la imagen en el modelo Category
             $category->category_image_path = 'storage/app/' . $photoPath;
@@ -132,6 +97,7 @@ public function updateImage(UpdateCategoryImageRequest $request, $uuid)
         return response()->json(['error' => 'Error updating category image'], 500);
     }
 }
+
 
 
 
