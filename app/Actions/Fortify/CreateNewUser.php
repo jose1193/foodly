@@ -106,7 +106,7 @@ protected function validateInput(array $input): \Illuminate\Contracts\Validation
             'last_name' => $input['last_name'],
             'username' => $input['username'],
             'date_of_birth' => $input['date_of_birth'],
-            'uuid' => 'ID-' . Uuid::uuid4()->toString(),
+            'uuid' => Uuid::uuid4()->toString(),
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
             'phone' => $input['phone'],

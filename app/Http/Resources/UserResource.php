@@ -30,6 +30,7 @@ class UserResource extends JsonResource {
         'gender' => $this->gender,
         'created_at' => $this->created_at,
         'updated_at' => $this->updated_at,
+        'deleted_at' => $this->deleted_at,
         'user_role' => $this->roles->pluck('name')->first() ?? null,
         'role_id' => $this->roles->pluck('id')->first() ?? null,
     ];

@@ -26,6 +26,7 @@ return new class extends Migration
             $table->double('branch_latitude', 10, 6)->nullable(); 
             $table->double('branch_longitude', 10, 6)->nullable(); 
             $table->foreignId('business_id')->constrained('businesses')->onUpdate('cascade')->onDelete('cascade');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

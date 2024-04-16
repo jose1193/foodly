@@ -13,6 +13,9 @@ use App\Models\User;
 use Hash;
 use Illuminate\Support\Arr;
 use App\Actions\Jetstream\DeleteUser;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Resources\UserResource;
+use Ramsey\Uuid\Uuid;
 
 class UsersController extends Controller
 {
@@ -27,11 +30,21 @@ class UsersController extends Controller
     
     // SHOW LIST OF USERS
     public function index(Request $request)
-    {
-        $data = User::orderBy('id', 'DESC')->get();
-        return response()->json(['data' => $data], 200);
-    }
+{
+    try {
+        // Obtener todos los usuarios, incluidos los eliminados
+        $users = User::withTrashed()->orderBy('id', 'DESC')->get();
 
+        // Crear una colección de recursos de usuarios
+        $userResources = UserResource::collection($users);
+
+        // Devolver una respuesta JSON con los recursos de usuarios
+        return response()->json(['users' => $userResources], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción y devolver una respuesta de error
+        return response()->json(['message' => 'Error occurred while fetching users'], 500);
+    }
+}
 
     // SYNC ROLES
     public function create()
@@ -41,7 +54,8 @@ class UsersController extends Controller
     }
 
     // STORE USER
-    public function store(Request $request)
+   
+public function store(Request $request)
 {
     try {
         $this->validateUser($request);
@@ -55,11 +69,27 @@ class UsersController extends Controller
         ]);
 
         $input['password'] = Hash::make($input['password']);
+        
+        // Genera un UUID utilizando Ramsey UUID
+        $input['uuid'] = Uuid::uuid4()->toString();
 
         $user = User::create($input);
-        $this->syncRoles($user, $request->input('roles'));
+        
+        // Sincronizar los roles del usuario
+        $this->syncRoles($user, $request->input('role_id'));
 
-        return response()->json(['message' => 'User created successfully'], 200);
+        // Obtener el primer rol del usuario
+        $userRole = $user->roles->pluck('name')->first() ?? null;
+        $roleId = $user->roles->pluck('id')->first() ?? null;
+        
+        // Agregar los roles al objeto $user
+        $user->user_role = $userRole;
+        $user->role_id = $roleId;
+
+        // Create the user resource
+        $userResource = new UserResource($user);
+
+        return $userResource;
     } catch (\Illuminate\Validation\ValidationException $e) {
         return response()->json(['errors' => $e->errors()], 422);
     }
@@ -67,26 +97,33 @@ class UsersController extends Controller
 
 
 
+
+
+
+
     // UPDATE USER
-    public function update(Request $request, $id)
-    {
-        
-        try {
-            $this->validateUser($request, $id);
+   public function update(Request $request, $uuid)
+{
+    try {
+        $this->validateUser($request, $uuid);
 
-            $user = User::find($id);
-            $input = $request->all();
+        $user = User::where('uuid', $uuid)->firstOrFail();
+        $input = $request->all();
 
-            $this->updatePassword($user, $input);
+        $this->updatePassword($user, $input);
 
-            $user->update($input);
-            $this->syncRoles($user, $request->input('roles'));
+        $user->update($input);
+        $this->syncRoles($user, $request->input('roles'));
 
-            return response()->json(['message' => 'User updated successfully'], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
-        }
+        // Devolver el recurso UserResource con la variable $user
+        return new UserResource($user);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['message' => 'User not found'], 404);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json(['errors' => $e->errors()], 422);
     }
+}
+
 
 
     // FIELDS VALIDATION RULES
@@ -137,11 +174,25 @@ class UsersController extends Controller
     }
 
     // SHOW PROFILE USER
-    public function show($uuid)
-    {
-        $user = User::where('uuid', $uuid)->first();
-        return response()->json(['user' => $user], $user ? 200 : 404);
+   public function show($uuid)
+{
+    try {
+        // Buscar el usuario por su UUID
+        $user = User::withTrashed()->where('uuid', $uuid)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+       // Devolver una respuesta JSON con el recurso UserResource del usuario
+    return response()->json(['user' => new UserResource($user)], 200);
+
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción y devolver una respuesta de error
+        return response()->json(['message' => 'Error occurred while fetching user'], 500);
     }
+}
+
 
 
 
@@ -155,20 +206,47 @@ class UsersController extends Controller
     }
 
 
-    // USER LOGOUT
-    public function destroy($id, DeleteUser $deleteUser)
-    {
-        $user = User::find($id);
 
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
 
-        $deleteUser->delete($user);
 
-        return response()->json(['message' => 'User deleted successfully'], 200);
+    // USER DELETE
+    public function destroy($uuid, DeleteUser $deleteUser)
+{
+    $user = User::where('uuid', $uuid)->first();
+
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
     }
 
+    $deleteUser->delete($user);
+
+    return response()->json(['message' => 'User deleted successfully'], 200);
+}
+
+
+public function restore($uuid)
+{
+    try {
+        // Buscar el usuario eliminado con el UUID proporcionado
+        $user = User::where('uuid', $uuid)->onlyTrashed()->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found in trash'], 404);
+        }
+
+        // Restaurar el usuario eliminado
+        $user->restore();
+
+        // Devolver una respuesta JSON con el mensaje, el recurso del usuario restaurado
+        return response()->json([
+            'message' => 'User restored successfully',
+            'user' => new UserResource($user)
+        ], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción y devolver una respuesta de error
+        return response()->json(['message' => 'Error occurred while restoring User'], 500);
+    }
+}
 
 
 }

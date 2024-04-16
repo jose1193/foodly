@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
         'name' => 'Super Admin',
         'username' => 'superadmin369',
         'email' => 'admin369@admin369.com',
-        'uuid' => 'ID-' . Uuid::uuid4()->toString(25),
+        'uuid' => Uuid::uuid4()->toString(25),
         'phone' => '00000',
         'password' => bcrypt('superadmin369')
     ]);
@@ -48,7 +48,7 @@ class DatabaseSeeder extends Seeder
     $managerUser = User::factory()->create([
         'name' => 'Manager',
         'username' => 'manager369',
-         'uuid' => 'ID-' . Uuid::uuid4()->toString(25),
+         'uuid' => Uuid::uuid4()->toString(25),
         'email' => 'manager@manager.com',
         'phone' => '00000',
         'password' => bcrypt('manager369')
@@ -64,7 +64,7 @@ class DatabaseSeeder extends Seeder
         'name' => 'Admin',
         'username' => 'admin369',
         'email' => 'admin@admin.com',
-        'uuid' => 'ID-' . Uuid::uuid4()->toString(),
+        'uuid' => Uuid::uuid4()->toString(),
         'phone' => '00000',
         'password' => bcrypt('admin369')
     ]);
@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
         'name' => 'Employee',
         'username' => 'employee369',
         'email' => 'employee@employee.com',
-        'uuid' => 'ID-' . Uuid::uuid4()->toString(),
+        'uuid' => Uuid::uuid4()->toString(),
         'phone' => '00000',
         'password' => bcrypt('employee369')
     ]);
@@ -94,7 +94,7 @@ class DatabaseSeeder extends Seeder
         'name' => 'Customer',
         'username' => 'customer369',
         'email' => 'customer@customer.com',
-        'uuid' => 'ID-' . Uuid::uuid4()->toString(),
+        'uuid' => Uuid::uuid4()->toString(),
         'phone' => '00000',
         'password' => bcrypt('customer369')
     ]);

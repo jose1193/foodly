@@ -39,8 +39,8 @@ class BranchController extends Controller
         // Obtener todos los negocios asociados al usuario autenticado
         $businesses = Business::where('user_id', $userId)->pluck('id');
 
-        // Obtener todas las sucursales asociadas a los negocios del usuario autenticado
-        $businessBranches = BusinessBranch::whereIn('business_id', $businesses)->orderBy('id', 'desc')->get();
+        // Obtener todas las sucursales asociadas a los negocios del usuario autenticado, incluidas las eliminadas
+        $businessBranches = BusinessBranch::withTrashed()->whereIn('business_id', $businesses)->orderBy('id', 'desc')->get();
 
         // Verificar si se encontraron sucursales
         if ($businessBranches->isEmpty()) {
@@ -142,7 +142,7 @@ private function deleteImage($imagePath)
      */
     public function show(string $uuid)
      {
-         $business_branch = BusinessBranch::where('branch_uuid', $uuid)->first();
+         $business_branch = BusinessBranch::withTrashed()->where('branch_uuid', $uuid)->first();
        
        return $business_branch
         ? response()->json(['message' => 'Business Branch retrieved successfully', 'business_branch' => new BranchResource($business_branch)], 200)
@@ -188,31 +188,43 @@ private function deleteImage($imagePath)
     
 public function destroy($uuid)
 {
-     $business_branch = BusinessBranch::where('branch_uuid', $uuid)->first();
-    if ($business_branch) {
-        // Eliminar el logotipo del negocio
-        if ($business_branch->branch_logo) {
-            $pathWithoutAppPublic = str_replace('storage/app/public/', '', $business_branch->branch_logo);
-            Storage::disk('public')->delete($pathWithoutAppPublic);
+    try {
+        $businessBranch = BusinessBranch::where('branch_uuid', $uuid)->first();
+
+        if (!$businessBranch) {
+            return response()->json(['message' => 'Business Branch not found'], 404);
         }
 
-        // Obtener las imagenes de portada asociadas al negocio desde el modelo BusinessCoverImage
-        $coverImages = BranchCoverImage::where('branch_id', $business_branch->id)->get();
+        // Marcar la sucursal de negocio como eliminada (soft delete)
+        $businessBranch->delete();
 
-        if (!$coverImages->isEmpty()) {
-            foreach ($coverImages as $image) {
-                $pathWithoutAppPublic = str_replace('storage/app/public/', '', $image->branch_image_path);
-                Storage::disk('public')->delete($pathWithoutAppPublic);
-                $image->delete();
-            }
-        }
-
-        // Eliminar el negocio
-        $business_branch->delete();
-
-        return response()->json(['message' => 'Business Branch and associated images deleted successfully'], 200);
-    } else {
-        return response()->json(['message' => 'Business Branch not found'], 404);
+        return response()->json(['message' => 'Business Branch deleted successfully'], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción y devolver una respuesta de error
+        return response()->json(['message' => 'Error occurred while deleting Business Branch'], 500);
     }
 }
+
+public function restore($uuid)
+{
+    try {
+        // Buscar la sucursal de negocio eliminada con el UUID proporcionado
+        $businessBranch = BusinessBranch::where('branch_uuid', $uuid)->onlyTrashed()->first();
+
+        if (!$businessBranch) {
+            return response()->json(['message' => 'Business Branch not found in trash'], 404);
+        }
+
+        // Restaurar la sucursal de negocio
+        $businessBranch->restore();
+
+        // Devolver una respuesta JSON con el mensaje y el recurso de la sucursal de negocio restaurada
+        return response()->json(['message' => 'Business Branch restored successfully', 'business_branch' => new BranchResource($businessBranch)], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción y devolver una respuesta de error
+        return response()->json(['message' => 'Error occurred while restoring Business Branch'], 500);
+    }
+}
+
+
 }

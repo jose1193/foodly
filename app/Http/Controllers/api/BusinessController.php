@@ -34,8 +34,8 @@ class BusinessController extends Controller
         // Obtener el ID del usuario autenticado
         $userId = Auth::id();
 
-        // Obtener todos los negocios asociados al usuario autenticado
-        $businesses = Business::where('user_id', $userId)->orderBy('id', 'desc')->get();
+        // Obtener todos los negocios asociados al usuario autenticado, incluidos los eliminados
+        $businesses = Business::withTrashed()->where('user_id', $userId)->orderBy('id', 'desc')->get();
 
         // Verificar si se encontraron negocios
         if ($businesses->isEmpty()) {
@@ -43,7 +43,7 @@ class BusinessController extends Controller
             return response()->json(['message' => 'No businesses found'], 404);
         }
 
-        // Devolver los negocios encontrados como respuesta JSON
+        // Devolver los negocios encontrados como respuesta JSON, incluidos los eliminados
         return response()->json(['message' => 'Businesses retrieved successfully', 'businesses' => BusinessResource::collection($businesses)], 200);
     } catch (\Exception $e) {
         // Manejar cualquier excepción que ocurra durante el proceso
@@ -51,9 +51,10 @@ class BusinessController extends Controller
     }
 }
 
+
  public function show($uuid)
     {
-         $business = Business::where('business_uuid', $uuid)->first();
+         $business = Business::withTrashed()->where('business_uuid', $uuid)->first();
        
        return $business
         ? response()->json(['message' => 'Business retrieved successfully', 'business' => new BusinessResource($business)], 200)
@@ -171,33 +172,40 @@ public function update(BusinessRequest $request, $uuid)
 
 public function destroy($uuid)
 {
-     $business = Business::where('business_uuid', $uuid)->first();
-    if ($business) {
-        // Eliminar el logotipo del negocio
-        if ($business->business_logo) {
-            $pathWithoutAppPublic = str_replace('storage/app/public/', '', $business->business_logo);
-            Storage::disk('public')->delete($pathWithoutAppPublic);
-        }
+    $business = Business::where('business_uuid', $uuid)->first();
 
-        // Obtener las im谩genes de portada asociadas al negocio desde el modelo BusinessCoverImage
-        $coverImages = BusinessCoverImage::where('business_id', $business->id)->get();
-
-        if (!$coverImages->isEmpty()) {
-            foreach ($coverImages as $image) {
-                $pathWithoutAppPublic = str_replace('storage/app/public/', '', $image->business_image_path);
-                Storage::disk('public')->delete($pathWithoutAppPublic);
-                $image->delete();
-            }
-        }
-
-        // Eliminar el negocio
-        $business->delete();
-
-        return response()->json(['message' => 'Business and associated images deleted successfully'], 200);
-    } else {
+    if (!$business) {
         return response()->json(['message' => 'Business not found'], 404);
     }
+
+    // Marcar el negocio como eliminado
+    $business->delete();
+
+    return response()->json(['message' => 'Business deleted successfully'], 200);
 }
+
+
+public function restore($uuid)
+{
+    try {
+        // Buscar el negocio eliminado con el UUID proporcionado
+        $business = Business::where('business_uuid', $uuid)->onlyTrashed()->first();
+
+        if (!$business) {
+            return response()->json(['message' => 'Business not found in trash'], 404);
+        }
+
+        // Restaurar el negocio eliminado
+        $business->restore();
+
+        // Devolver una respuesta JSON con el negocio restaurado
+        return response()->json(['message' => 'Business restored successfully', 'business' => new BusinessResource($business)], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción y devolver una respuesta de error
+        return response()->json(['message' => 'Error occurred while restoring Business'], 500);
+    }
+}
+
 
 
 

@@ -23,6 +23,9 @@ class PromotionResource extends JsonResource
             'promotion_type' => $this->promotion_type,
             'promotion_status' => $this->promotion_status,
             'business_id' => $this->business_id,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
             //'business' => new BusinessResource($this->business), // Aquí anidamos el recurso Business
         ];
     }

@@ -24,10 +24,10 @@ return new class extends Migration
             $table->string('promotion_type')->nullable();
             //promotion status
             $table->string('promotion_status')->nullable();
-             //softdelete
-            $table->softDeletes();
             //relation with business
             $table->foreignId('business_id')->constrained('businesses')->onUpdate('cascade')->onDelete('cascade');
+             //softdelete
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -86,6 +86,7 @@ public function __construct()
 // USER LOGOUT
  // logout a user method
     public function logout(Request $request) {
+    try {
         $request->user()->currentAccessToken()->delete();
 
         $cookie = cookie()->forget('token');
@@ -93,7 +94,13 @@ public function __construct()
         return response()->json([
             'message' => 'Logged out successfully!'
         ])->withCookie($cookie);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'An error occurred while logging out.'
+        ], 500);
     }
+}
+
 
     
 public function logout2()

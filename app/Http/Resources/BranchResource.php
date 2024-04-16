@@ -15,6 +15,7 @@ class BranchResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'branch_id' => $this->id,
             'branch_uuid' => $this->branch_uuid,
             'branch_logo' => asset($this->branch_logo),
             'branch_name' => $this->branch_name,
@@ -28,6 +29,9 @@ class BranchResource extends JsonResource
             'branch_latitude' => $this->branch_latitude,
             'branch_longitude' => $this->branch_longitude,
             'business_id' => $this->business_id,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
             'business' => $this->business,
         ];
     }

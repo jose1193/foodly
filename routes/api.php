@@ -95,10 +95,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     
     Route::post('reset-password', [AuthController::class, 'resetPassword']);
     Route::post('update-profile', [AuthController::class, 'updateProfile']);
-
-    
     Route::post('update-profile-photo', [ProfilePhotoController::class, 'update']);
-
+    
 
     // Rutas relacionadas con roles
     Route::get('roles-list', [RoleController::class, 'index']); // Obtener una lista de roles
@@ -112,11 +110,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Rutas relacionadas con usuarios
     Route::get('users-list', [UsersController::class, 'index']); 
     Route::post('users-store', [UsersController::class, 'store']); 
-    Route::get('users-id/{id}', [UsersController::class, 'show']); 
-    Route::put('users-update/{id}', [UsersController::class, 'update']); 
+    Route::get('users-profile/{uuid}', [UsersController::class, 'show']); 
+    Route::put('users-update/{uuid}', [UsersController::class, 'update']); 
     Route::delete('users-delete/{id}', [UsersController::class, 'destroy']); 
     Route::get('users-create', [UsersController::class, 'create']); 
-    Route::get('users-list/{id}/edit', [UsersController::class, 'edit']); 
+    Route::get('users-list/{uuid}/edit', [UsersController::class, 'edit']); 
+    Route::put('users-restore/{uuid}', [UsersController::class, 'restore']); 
 
     // Rutas relacionadas con permisos
     Route::get('permissions-list', [PermissionController::class, 'index']);
@@ -150,6 +149,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/business/{uuid}', [BusinessController::class, 'show']);
     Route::delete('/business-delete/{uuid}', [BusinessController::class, 'destroy']);
     Route::post('/business-update-logo/{uuid}', [BusinessController::class, 'updateLogo']);
+    Route::put('/business-restore/{uuid}', [BusinessController::class, 'restore']);
+
 
     // Routes related to Business Cover Images
     Route::get('/business-cover-images', [BusinessCoverImageController::class, 'index']);
@@ -166,7 +167,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/branch/{uuid}', [BranchController::class, 'show']);
     Route::post('/branch-update-logo/{uuid}', [BranchController::class, 'updateLogo']);
     Route::delete('/branch-delete/{uuid}', [BranchController::class, 'destroy']);
-    
+    Route::put('/branch-restore/{uuid}', [BranchController::class, 'restore']);
+
+
     // Routes related to Branch Cover Images
     Route::get('/branch-cover-images', [BranchCoverImageController::class, 'index']);
     Route::post('/branch-cover-images-store', [BranchCoverImageController::class, 'store']);
@@ -184,6 +187,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/promotions-update/{uuid}', [PromotionController::class, 'update']);
     Route::get('/promotions/{uuid}', [PromotionController::class, 'show']);
     Route::delete('/promotions-delete/{uuid}', [PromotionController::class, 'destroy']);
+    Route::put('/promotions-restore/{uuid}', [PromotionController::class, 'restore']);
 
 });
 

@@ -39,7 +39,7 @@ class PromotionController extends Controller
         // Iterar sobre cada negocio y obtener las promociones asociadas a cada uno
         foreach ($businesses as $business) {
             $businessId = $business->id;
-            $promotions = Promotion::where('business_id', $businessId)->get();
+            $promotions = Promotion::withTrashed()->where('business_id', $businessId)->get();
             $allPromotions = $allPromotions->concat($promotions);
         }
 
@@ -123,7 +123,7 @@ public function update(PromotionRequest $request, $uuid)
 public function show($uuid)
 {
     try {
-        $promotion = Promotion::where('promotion_uuid', $uuid)
+        $promotion = Promotion::withTrashed()->where('promotion_uuid', $uuid)
             ->where('promotion_status', 'Active')
             ->firstOrFail();
 
@@ -143,13 +143,38 @@ public function destroy($uuid)
         $promotion = Promotion::where('promotion_uuid', $uuid)->firstOrFail();
         $promotion->delete();
 
-        return response()->json(['message' => 'Promotion deleted successfully'], 204);
+        return response()->json(['message' => 'Promotion deleted successfully'], 200);
     } catch (ModelNotFoundException $e) {
         return response()->json(['message' => 'Promotion not found'], 404);
     } catch (\Exception $e) {
         return response()->json(['message' => 'Error deleting promotion'], 500);
     }
 }
+
+
+
+public function restore($uuid)
+{
+    try {
+        // Buscar la promoción eliminada con el UUID proporcionado
+        $promotion = Promotion::where('promotion_uuid', $uuid)->onlyTrashed()->first();
+
+        if (!$promotion) {
+            return response()->json(['message' => 'Promotion not found in trash'], 404);
+        }
+
+        // Restaurar la promoción eliminada
+        $promotion->restore();
+
+        // Devolver una respuesta JSON con el mensaje y el recurso de la promoción restaurada
+        return response()->json(['message' => 'Promotion restored successfully', 'promotion' => new PromotionResource($promotion)], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción y devolver una respuesta de error
+        return response()->json(['message' => 'Error occurred while restoring Promotion'], 500);
+    }
+}
+
+
 
 
 }
