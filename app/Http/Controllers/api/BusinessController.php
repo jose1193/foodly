@@ -27,10 +27,25 @@ class BusinessController extends Controller
 
     public function index()
 {
-    $businesses = Business::orderBy('id', 'desc')->get();
-    return $businesses
-        ? response()->json(['message' => 'Businesses retrieved successfully', 'businesses' => BusinessResource::collection($businesses)], 200)
-        : response()->json(['message' => 'No businesses found'], 404);
+    try {
+        // Obtener el ID del usuario autenticado
+        $userId = Auth::id();
+
+        // Obtener todos los negocios asociados al usuario autenticado
+        $businesses = Business::where('user_id', $userId)->orderBy('id', 'desc')->get();
+
+        // Verificar si se encontraron negocios
+        if ($businesses->isEmpty()) {
+            // Si no se encontraron negocios, devolver una respuesta 404
+            return response()->json(['message' => 'No businesses found'], 404);
+        }
+
+        // Devolver los negocios encontrados como respuesta JSON
+        return response()->json(['message' => 'Businesses retrieved successfully', 'businesses' => BusinessResource::collection($businesses)], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción que ocurra durante el proceso
+        return response()->json(['message' => 'Error retrieving businesses'], 500);
+    }
 }
 
  public function show($uuid)
@@ -141,14 +156,27 @@ private function resizeImage($imagePath)
 
 public function update(BusinessRequest $request, $uuid)
 {
-     $business = Business::where('business_uuid', $uuid)->first();
+    // Obtener el negocio por su UUID
+    $business = Business::where('business_uuid', $uuid)->first();
+
     if ($business) {
-        $business->update($request->validated());
-        return response()->json(['message' => 'Business updated successfully', 'business' => new BusinessResource($business)], 200);
+        // Verificar si el negocio pertenece al usuario autenticado
+        if ($business->user_id === auth()->id()) {
+            // Actualizar el negocio con los datos validados
+            $business->update($request->validated());
+
+            // Devolver una respuesta JSON con el negocio actualizado
+            return response()->json(['message' => 'Business updated successfully', 'business' => new BusinessResource($business)], 200);
+        } else {
+            // El negocio no pertenece al usuario autenticado
+            return response()->json(['message' => 'Unauthorized - Business does not belong to the authenticated user'], 403);
+        }
     } else {
+        // El negocio no fue encontrado
         return response()->json(['message' => 'Business not found'], 404);
     }
 }
+
 
 
 

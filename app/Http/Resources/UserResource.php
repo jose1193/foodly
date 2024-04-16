@@ -36,16 +36,35 @@ class UserResource extends JsonResource {
 
     // Incluir los negocios del usuario
     $data['business'] = $this->businesses->map(function ($business) {
+        // Incluir las imágenes de portada de los negocios
         $coverImages = $business->coverImages->map(function ($image) {
             return [
                 'id' => $image->id,
                 'business_id' => $image->business_id,
+                'business_image_uuid' => $image->business_image_uuid,
                 'business_image_path' => $image->business_image_path,
                 // Incluir otros atributos de la imagen si los hay
             ];
         })->toArray();
 
+        // Incluir las promociones de los negocios
+        $promotions = $business->promotions->map(function ($promotion) {
+            return [
+                'id' => $promotion->id,
+                'promotion_uuid' => $promotion->promotion_uuid,
+                'promotion_title' => $promotion->promotion_title,
+                'promotion_description' => $promotion->promotion_description,
+                'promotion_start_date' => $promotion->promotion_start_date,
+                'promotion_end_date' => $promotion->promotion_end_date,
+                'promotion_type' => $promotion->promotion_type,
+                'promotion_status' => $promotion->promotion_status,
+                'business_id' => $promotion->business_id,
+            ];
+        })->toArray();
+
+        // Incluir las sucursales de los negocios
         $branch = $business->businessBranch->isNotEmpty() ? $business->businessBranch : [];
+
         return [
             'id' => $business->id,
             'user_id' => $business->user_id,
@@ -64,6 +83,7 @@ class UserResource extends JsonResource {
             'category_id' => $business->category_id,
             'category' => $business->category,
             'business_cover_images' => $coverImages,
+            'business_promotions' => $promotions, 
             'business_branch' => $branch,
         ];
     })->toArray(); // Convertir la colección en un array

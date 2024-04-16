@@ -7,6 +7,7 @@ use App\Models\BusinessBranch;
 use App\Http\Requests\BranchRequest;
 use App\Http\Resources\BranchResource;
 use App\Models\BusinessBranchCoverImage;
+use App\Models\Business;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -21,7 +22,7 @@ class BranchController extends Controller
     // PERMISSIONS USERS
     public function __construct()
 {
-   $this->middleware('check.permission:Manager')->only(['index','create', 'store', 'edit', 'update', 'destroy','updateLogo']);
+   $this->middleware('check.permission:Manager')->only(['index','create', 'store', 'update', 'destroy','updateLogo']);
 
 }
 
@@ -29,20 +30,48 @@ class BranchController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-    $business_branch = BusinessBranch::orderBy('id', 'desc')->get();
-    return $business_branch
-        ? response()->json(['message' => 'Businesses Branches retrieved successfully', 'business_branch' => BranchResource::collection($business_branch)], 200)
-        : response()->json(['message' => 'No businesses branches found'], 404);
+{
+    try {
+        // Obtener el ID del usuario autenticado
+        $userId = Auth::id();
+
+        // Obtener todos los negocios asociados al usuario autenticado
+        $businesses = Business::where('user_id', $userId)->pluck('id');
+
+        // Obtener todas las sucursales asociadas a los negocios del usuario autenticado
+        $businessBranches = BusinessBranch::whereIn('business_id', $businesses)->orderBy('id', 'desc')->get();
+
+        // Verificar si se encontraron sucursales
+        if ($businessBranches->isEmpty()) {
+            // Si no se encontraron sucursales, devolver una respuesta 404
+            return response()->json(['message' => 'No business branches found'], 404);
+        }
+
+        // Devolver las sucursales encontradas como respuesta JSON
+        return response()->json(['message' => 'Business branches retrieved successfully', 'business_branches' => BranchResource::collection($businessBranches)], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción que ocurra durante el proceso
+        return response()->json(['message' => 'Error retrieving business branches'], 500);
+    }
 }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(BranchRequest $request)
-    {
+{
     try {
         $data = $request->validated();
+
+        // Asegurarse de que el business_id enviado pertenece al usuario autenticado
+        if ($request->has('business_id')) {
+            $business = Auth::user()->businesses()->where('id', $request->input('business_id'))->first();
+            if (!$business) {
+                return response()->json(['message' => 'Unauthorized. Business does not belong to authenticated user.'], 401);
+            }
+        } else {
+            return response()->json(['message' => 'business_id is required.'], 400);
+        }
 
         // Generar un UUID
         $data['branch_uuid'] = Uuid::uuid4()->toString();
@@ -64,6 +93,9 @@ class BranchController extends Controller
         return response()->json(['message' => 'An error occurred: '.$e->getMessage()], 500);
     }
 }
+
+
+
 
 public function updateLogo(UpdateBranchLogoRequest $request, $uuid)
 {
@@ -145,14 +177,32 @@ private function resizeImage($imagePath)
      */
     public function update(BranchRequest $request, $uuid)
 {
-     $business_branch = BusinessBranch::where('branch_uuid', $uuid)->first();
+    // Obtener la sucursal por su UUID
+    $business_branch = BusinessBranch::where('branch_uuid', $uuid)->first();
+
     if ($business_branch) {
-        $business_branch->update($request->validated());
-        return response()->json(['message' => 'Business Branch updated successfully', 'business_branch' => new BranchResource($business_branch)], 200);
+        // Obtener el usuario autenticado
+        $user = auth()->user();
+
+        // Verificar si el business_id de la sucursal pertenece al usuario autenticado
+        if ($user->businesses()->where('id', $request->business_id)->exists()) {
+            // Actualizar la sucursal con los datos validados
+            $business_branch->update($request->validated());
+
+            // Devolver una respuesta JSON con la sucursal actualizada
+            return response()->json(['message' => 'Business Branch updated successfully', 'business_branch' => new BranchResource($business_branch)], 200);
+        } else {
+            // El business_id de la sucursal no pertenece al usuario autenticado
+            return response()->json(['message' => 'Unauthorized - Business Branch does not belong to the authenticated user'], 403);
+        }
     } else {
+        // La sucursal no fue encontrada
         return response()->json(['message' => 'Business Branch not found'], 404);
     }
 }
+
+
+
 
 
     /**

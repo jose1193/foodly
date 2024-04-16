@@ -3560,14 +3560,12 @@
                         "description": "Website of the business"
                     },
                     "business_latitude": {
-                        "type": "number",
-                        "description": "Latitude of the business",
-                        "format": "double"
+                        "type": "string",
+                        "description": "Latitude of the business"
                     },
                     "business_longitude": {
-                        "type": "number",
-                        "description": "Longitude of the business",
-                        "format": "double"
+                        "type": "string",
+                        "description": "Longitude of the business"
                     },
                     "category_id": {
                         "type": "integer",

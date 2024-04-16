@@ -45,4 +45,11 @@ class Business extends Model
     {
         return $this->hasMany(BusinessBranch::class, 'business_id');
     }
+
+    public function promotions()
+{
+    return $this->hasMany(Promotion::class, 'business_id');
+}
+
+
 }

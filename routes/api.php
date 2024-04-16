@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\CheckEmailController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BranchCoverImageController;
 use App\Http\Controllers\Api\BiometricAuthController;
+use App\Http\Controllers\Api\PromotionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,7 +83,7 @@ Route::get('/username-available/{username}', [CheckUsernameController::class, 'c
 
 Route::get('/email-available/{email}', [CheckEmailController::class, 'checkEmailAvailability']);
 
-Route::get('/all-categories', [CategoryController::class, 'index']);
+Route::get('/categories', [CategoryController::class, 'index']);
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
    
@@ -128,46 +129,47 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Routes related to Categories
     
-    Route::post('/categories', [CategoryController::class, 'store']);
+
+    Route::post('/categories-store', [CategoryController::class, 'store']);
     Route::put('/categories-update/{uuid}', [CategoryController::class, 'update']);
     Route::get('/categories/{uuid}', [CategoryController::class, 'show']);
     Route::delete('/categories-delete/{uuid}', [CategoryController::class, 'destroy']);
     Route::post('/categories-update-images/{uuid}/', [CategoryController::class, 'updateImage']);
 
      // Routes related to Subcategories
-    Route::get('/all-subcategories', [SubcategoryController::class, 'index']);
-    Route::post('/subcategories', [SubcategoryController::class, 'store']);
+    Route::get('/subcategories', [SubcategoryController::class, 'index']);
+    Route::post('/subcategories-store', [SubcategoryController::class, 'store']);
     Route::put('/subcategories-update/{uuid}', [SubcategoryController::class, 'update']);
     Route::get('/subcategories/{uuid}', [SubcategoryController::class, 'show']);
     Route::delete('/subcategories-delete/{uuid}', [SubcategoryController::class, 'destroy']);
 
     // Routes related to Business
-    Route::get('/all-business', [BusinessController::class, 'index']);
-    Route::post('/business', [BusinessController::class, 'store']);
+    Route::get('/business', [BusinessController::class, 'index']);
+    Route::post('/business-store', [BusinessController::class, 'store']);
     Route::put('/business-update/{uuid}', [BusinessController::class, 'update']);
     Route::get('/business/{uuid}', [BusinessController::class, 'show']);
     Route::delete('/business-delete/{uuid}', [BusinessController::class, 'destroy']);
     Route::post('/business-update-logo/{uuid}', [BusinessController::class, 'updateLogo']);
 
     // Routes related to Business Cover Images
-    Route::get('/business-cover-images-all', [BusinessCoverImageController::class, 'index']);
-    Route::post('/business-cover-images', [BusinessCoverImageController::class, 'store']);
+    Route::get('/business-cover-images', [BusinessCoverImageController::class, 'index']);
+    Route::post('/business-cover-images-store', [BusinessCoverImageController::class, 'store']);
     Route::get('/business-cover-images/{cover_image_uuid}', [BusinessCoverImageController::class, 'show']);
     //Route::put('/business-cover-images/{cover_image_uuid}', [BusinessCoverImageController::class, 'update']);
     Route::delete('/business-cover-images-delete/{cover_image_uuid}', [BusinessCoverImageController::class, 'destroy']);
     Route::post('/business-cover-images-update/{cover_image_uuid}/update-image', [BusinessCoverImageController::class, 'updateImage']);
     
         // Routes related to Business
-    Route::get('/all-branch', [BranchController::class, 'index']);
-    Route::post('/branch', [BranchController::class, 'store']);
+    Route::get('/branch', [BranchController::class, 'index']);
+    Route::post('/branch-store', [BranchController::class, 'store']);
     Route::put('/branch-update/{uuid}', [BranchController::class, 'update']);
     Route::get('/branch/{uuid}', [BranchController::class, 'show']);
     Route::post('/branch-update-logo/{uuid}', [BranchController::class, 'updateLogo']);
     Route::delete('/branch-delete/{uuid}', [BranchController::class, 'destroy']);
     
     // Routes related to Branch Cover Images
-    Route::get('/branch-cover-images-all', [BranchCoverImageController::class, 'index']);
-    Route::post('/branch-cover-images', [BranchCoverImageController::class, 'store']);
+    Route::get('/branch-cover-images', [BranchCoverImageController::class, 'index']);
+    Route::post('/branch-cover-images-store', [BranchCoverImageController::class, 'store']);
     Route::get('/branch-cover-images/{uuid}', [BranchCoverImageController::class, 'show']);
     Route::put('/branch-cover-images-update/{uuid}/update-image', [BranchCoverImageController::class, 'updateImage']);
     Route::delete('/branch-cover-images-delete/{uuid}', [BranchCoverImageController::class, 'destroy']);
@@ -175,6 +177,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
    
     // Routes related to Biometric Login
     Route::post('/biometric-login', [BiometricAuthController::class, 'store']);
+
+    // Routes related to Business Cover Images
+    Route::get('/promotions', [PromotionController::class, 'index']);
+    Route::post('/promotions-store', [PromotionController::class, 'store']);
+    Route::put('/promotions-update/{uuid}', [PromotionController::class, 'update']);
+    Route::get('/promotions/{uuid}', [PromotionController::class, 'show']);
+    Route::delete('/promotions-delete/{uuid}', [PromotionController::class, 'destroy']);
 
 });
 

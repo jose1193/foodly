@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as Image;
 use App\Models\BranchCoverImage;
+use App\Models\Business;
 use App\Http\Requests\BusinessBranchCoverImageRequest;
 use App\Http\Resources\BusinessBranchCoverImageResource;
 use Ramsey\Uuid\Uuid;
 use App\Http\Requests\UpdateBusinessBranchCoverImageRequest;
+use Illuminate\Support\Facades\Auth;
 
 class BranchCoverImageController extends Controller
 {
@@ -26,25 +28,48 @@ class BranchCoverImageController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        
+{
+    try {
+        // Obtener el ID del usuario autenticado
+        $userId = Auth::id();
 
-         $branchCoverImages = BranchCoverImage::orderBy('id', 'desc')->get();
+        // Obtener los IDs de los negocios asociados al usuario
+        $businessIds = Business::where('user_id', $userId)->pluck('id');
+
+        // Obtener las imágenes de portada de las sucursales asociadas a los negocios del usuario
+        $branchCoverImages = BranchCoverImage::whereIn('business_id', $businessIds)->orderBy('id', 'desc')->get();
+
+        // Devolver una respuesta JSON con las imágenes de portada de las sucursales
         return response()->json(['branch_cover_images' => BusinessBranchCoverImageResource::collection($branchCoverImages)]);
-    
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción que ocurra durante el proceso
+        return response()->json(['message' => 'An error occurred: '.$e->getMessage()], 500);
     }
+}
 
 
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(BusinessBranchCoverImageRequest $request)
+    
+public function store(BusinessBranchCoverImageRequest $request)
 {
     try {
+        // Obtener el ID del usuario autenticado
+        $userId = Auth::id();
+
         // Validar la solicitud entrante
         $validatedData = $request->validated();
         $branchImages = [];
+
+        // Buscar todos los negocios asociados al usuario autenticado
+        $userBusinesses = Business::where('user_id', $userId)->pluck('id');
+
+        // Verificar si el branch_id pertenece a uno de los negocios del usuario
+        if (!$userBusinesses->contains($validatedData['branch_id'])) {
+            return response()->json(['error' => 'The provided branch ID does not belong to any business associated with the authenticated user'], 400);
+        }
 
         // Almacenar las imágenes de portada del negocio
         foreach ($validatedData['branch_image_path'] as $image) {
@@ -66,6 +91,8 @@ class BranchCoverImageController extends Controller
         return response()->json(['error' => 'Error storing branch cover images'], 500);
     }
 }
+
+
 
 
 public function updateImage(UpdateBusinessBranchCoverImageRequest $request, $uuid)
