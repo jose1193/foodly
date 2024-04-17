@@ -37,4 +37,10 @@ class BusinessBranch extends Model
     {
         return $this->hasMany(BranchCoverImage::class, 'branch_id');
     }
+
+    public function promotionsbranches()
+{
+    return $this->hasMany(PromotionBranch::class, 'branch_id');
+}
+
 }

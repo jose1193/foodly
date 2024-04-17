@@ -123,9 +123,7 @@ public function update(PromotionRequest $request, $uuid)
 public function show($uuid)
 {
     try {
-        $promotion = Promotion::withTrashed()->where('promotion_uuid', $uuid)
-            ->where('promotion_status', 'Active')
-            ->firstOrFail();
+        $promotion = Promotion::withTrashed()->where('promotion_uuid', $uuid)->firstOrFail();
 
         return response()->json(['promotion' => new PromotionResource($promotion)], 200);
     } catch (ModelNotFoundException $e) {

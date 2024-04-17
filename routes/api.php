@@ -22,7 +22,7 @@ use App\Http\Controllers\Api\BranchCoverImageController;
 use App\Http\Controllers\Api\BiometricAuthController;
 use App\Http\Controllers\Api\PromotionController;
 use App\Http\Controllers\Api\PromotionCoverImageController;
-
+use App\Http\Controllers\Api\PromotionBranchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -192,13 +192,20 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::put('/promotions-restore/{uuid}', [PromotionController::class, 'restore']);
 
 
-    // Routes related to Business Cover Images
+    // Routes related to Promotions Business Images
     Route::get('/promotion-images', [PromotionCoverImageController::class, 'index']);
     Route::post('/promotion-images-store', [PromotionCoverImageController::class, 'store']);
     Route::get('/promotion-images/{uuid}', [PromotionCoverImageController::class, 'show']);
     Route::delete('/promotion-images-delete/{uuid}', [PromotionCoverImageController::class, 'destroy']);
     Route::post('/promotion-images-update/{uuid}', [PromotionCoverImageController::class, 'updateImage']);
     
+    // Routes related to Promotions Branch Images
+    Route::get('/promotions-branches', [PromotionBranchController::class, 'index']);
+    Route::post('/promotions-branches-store', [PromotionBranchController::class, 'store']);
+    Route::put('/promotions-branches-update/{uuid}', [PromotionBranchController::class, 'update']);
+    Route::get('/promotions-branches/{uuid}', [PromotionBranchController::class, 'show']);
+    Route::delete('/promotions-branches-delete/{uuid}', [PromotionBranchController::class, 'destroy']);
+    Route::put('/promotions-branches-restore/{uuid}', [PromotionBranchController::class, 'restore']);
 
 });
 
