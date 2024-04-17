@@ -21,6 +21,8 @@ use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BranchCoverImageController;
 use App\Http\Controllers\Api\BiometricAuthController;
 use App\Http\Controllers\Api\PromotionController;
+use App\Http\Controllers\Api\PromotionCoverImageController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -188,6 +190,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/promotions/{uuid}', [PromotionController::class, 'show']);
     Route::delete('/promotions-delete/{uuid}', [PromotionController::class, 'destroy']);
     Route::put('/promotions-restore/{uuid}', [PromotionController::class, 'restore']);
+
+
+    // Routes related to Business Cover Images
+    Route::get('/promotion-images', [PromotionCoverImageController::class, 'index']);
+    Route::post('/promotion-images-store', [PromotionCoverImageController::class, 'store']);
+    Route::get('/promotion-images/{uuid}', [PromotionCoverImageController::class, 'show']);
+    Route::delete('/promotion-images-delete/{uuid}', [PromotionCoverImageController::class, 'destroy']);
+    Route::post('/promotion-images-update/{uuid}', [PromotionCoverImageController::class, 'updateImage']);
+    
 
 });
 

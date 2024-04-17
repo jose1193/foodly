@@ -28,5 +28,10 @@ class Promotion extends Model
     {
         return $this->belongsTo(Business::class);
     }
+
+    public function promotionImages()
+    {
+        return $this->hasMany(PromotionImage::class, 'promotion_id');
+    }
     
 }
