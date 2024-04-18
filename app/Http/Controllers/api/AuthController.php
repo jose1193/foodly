@@ -48,7 +48,7 @@ public function __construct()
 
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    $cookie = cookie('token', $token, 60 * 24); // 1 day
+    $cookie = cookie('token', $token, 60 * 24 * 365); // 1 day
 
     // Add userRoles directly to the user object
     $user->userRoles = $userRoles;
