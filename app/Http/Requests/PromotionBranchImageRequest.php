@@ -7,7 +7,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
 
-class UpdatePromotionImageRequest extends FormRequest
+class PromotionBranchImageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +25,8 @@ class UpdatePromotionImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'promotion_image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048', // ajusta según tus necesidades
+            'promotion_branch_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048',
+            'promotion_branch_id' => 'required|exists:promotion_branches,id',
         ];
     }
 
@@ -39,7 +40,7 @@ class UpdatePromotionImageRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'promotion_image'      => $validator->errors()
+            'promotion_branch_images'      => $validator->errors()
 
         ]));
 

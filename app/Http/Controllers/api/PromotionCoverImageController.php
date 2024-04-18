@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use App\Models\Promotion;
 use App\Models\PromotionImage;
+use App\Models\User;
 use App\Http\Requests\PromotionCoverImageRequest;
 use App\Http\Resources\PromotionImageResource;
 use Ramsey\Uuid\Uuid;
@@ -29,13 +30,43 @@ class PromotionCoverImageController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        
+{
+    try {
+        // Obtener el ID del usuario autenticado
+        $userId = auth()->id();
 
-         $promotion_images = PromotionImage::orderBy('id', 'desc')->get();
-        return response()->json(['promotion_images' => PromotionImageResource::collection($promotion_images)]);
-    
+        // Obtener todos los negocios asociados al usuario autenticado
+        $businesses = User::findOrFail($userId)->businesses;
+
+        // Inicializar un array para almacenar las imágenes de promoción agrupadas por nombre de promoción
+        $groupedPromotionImages = [];
+
+        // Iterar sobre cada negocio y obtener las promociones asociadas a cada uno
+        foreach ($businesses as $business) {
+            // Obtener las promociones del negocio
+            $promotions = $business->promotions;
+
+            // Iterar sobre cada promoción y obtener las imágenes de promoción asociadas a cada una
+            foreach ($promotions as $promotion) {
+                // Obtener el título de la promoción
+                $promotionTitle = $promotion->promotion_title;
+
+                // Obtener las imágenes de promoción de la promoción
+                $promotionImages = $promotion->promotionImages;
+
+                // Agregar las imágenes de promoción al array asociado al título de la promoción
+                $groupedPromotionImages[$promotionTitle] = PromotionImageResource::collection($promotionImages);
+            }
+        }
+
+        // Devolver todas las imágenes de promoción agrupadas por título de promoción como respuesta JSON
+        return response()->json(['grouped_promotion_images' => $groupedPromotionImages], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Error fetching promotion images'], 500);
     }
+}
+
+
 
     /**
      * Store a newly created resource in storage.
@@ -80,23 +111,25 @@ class PromotionCoverImageController extends Controller
     public function show($uuid)
 {
     try {
-        // Encontrar todas las imágenes de promoción por su uuid
-        $promotionImages = PromotionImage::where('promotion_image_uuid', $uuid)->get();
+        // Encontrar la imagen de promoción por su UUID
+        $promotionImage = PromotionImage::where('promotion_image_uuid', $uuid)->first();
 
-        // Verificar si se encontraron imágenes de promoción
-        if ($promotionImages->isEmpty()) {
-            return response()->json(['message' => 'Promotion images not found'], 404);
+        // Verificar si se encontró la imagen de promoción
+        if (!$promotionImage) {
+            return response()->json(['message' => 'Promotion image not found'], 404);
         }
 
-        // Crear una colección de recursos para las imágenes de promoción
-        $promotionImagesResources = PromotionImageResource::collection($promotionImages);
+        // Crear un recurso para la imagen de promoción
+        $promotionImageResource = new PromotionImageResource($promotionImage);
 
-        // Devolver la colección de recursos de imágenes de promoción bajo la clave 'images'
-        return response()->json(['promotion_images' => $promotionImagesResources]);
+        // Devolver el recurso de imagen de promoción
+        return response()->json(['promotion_image' => $promotionImageResource], 200);
     } catch (\Exception $e) {
-        return response()->json(['error' => 'Error retrieving promotion images'], 500);
+        // Manejar errores de manera más detallada
+        return response()->json(['error' => 'Error retrieving promotion image'], 500);
     }
 }
+
 
 
     /**

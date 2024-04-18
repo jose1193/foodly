@@ -28,6 +28,9 @@ class PromotionBranch extends Model
         return $this->belongsTo(BusinessBranch::class);
     }
 
-    
+    public function promotionBranchesImages()
+    {
+        return $this->hasMany(PromotionBranchImage::class, 'promotion_branch_id');
+    }
     
 }

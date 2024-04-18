@@ -45,21 +45,22 @@ class PromotionBranchController extends Controller
             $branches = $business->businessBranch;
 
             // Iterar sobre cada sucursal y obtener las promociones asociadas
-            foreach ($branches as $branch) {
-                // Obtener las promociones asociadas a esta sucursal
-                $promotionsBranches = $branch->promotionsbranches;
+                foreach ($branches as $branch) {
+            // Obtener las promociones asociadas a esta sucursal
+            $promotionsBranches = $branch->promotionsbranches;
 
-                // Concatenar las promociones a la colección de promociones
-                $allPromotions = $allPromotionsBranches->merge($promotionsBranches);
+        // Concatenar las promociones a la colección de promociones
+        $allPromotionsBranches = $allPromotionsBranches->concat($promotionsBranches);
             }
         }
 
         // Devolver todas las promociones como respuesta JSON
-        return response()->json(['promotions_branches' => $allPromotions], 200);
+        return response()->json(['branch_promotions' => $allPromotionsBranches->flatten()], 200);
     } catch (\Exception $e) {
         return response()->json(['message' => 'Error fetching promotions'], 500);
     }
 }
+
 
 
 
@@ -96,7 +97,7 @@ class PromotionBranchController extends Controller
         // Crear la promoción de la sucursal
         $promotionBranch = PromotionBranch::create($validatedData);
 
-        return response()->json(['message' => 'Promotion branch created successfully', 'promotions_branches' => new PromotionBranchResource($promotionBranch)], 201);
+        return response()->json(['message' => 'Promotion branch created successfully', 'branch_promotions' => new PromotionBranchResource($promotionBranch)], 201);
     } catch (\Exception $e) {
         return response()->json(['message' => 'Error creating promotion branch'], 500);
     }
@@ -143,7 +144,7 @@ class PromotionBranchController extends Controller
         $promotionBranch->update($validatedData);
 
         // Devolver una respuesta JSON con la promoción de sucursal actualizada
-        return response()->json(['message' => 'Promotion branch updated successfully', 'promotions_branches' => new PromotionBranchResource($promotionBranch)], 200);
+        return response()->json(['message' => 'Promotion branch updated successfully', 'branch_promotions' => new PromotionBranchResource($promotionBranch)], 200);
     } catch (ModelNotFoundException $e) {
         // Manejar el caso en el que no se encuentre la promoción de sucursal
         return response()->json(['message' => 'Promotion branch not found'], 404);
@@ -188,7 +189,7 @@ public function restore($uuid)
         $promotionBranch->restore();
 
         // Devolver una respuesta JSON con el mensaje y el recurso de la promoción restaurada
-        return response()->json(['message' => 'Promotion Branch restored successfully', 'promotions_branches' => new PromotionBranchResource($promotionBranch)], 200);
+        return response()->json(['message' => 'Promotion Branch restored successfully', 'branch_promotions' => new PromotionBranchResource($promotionBranch)], 200);
     } catch (\Exception $e) {
         // Manejar cualquier excepción y devolver una respuesta de error
         return response()->json(['message' => 'Error occurred while restoring Promotion Branch'], 500);

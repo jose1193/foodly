@@ -45,7 +45,7 @@ class PromotionBranchRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'promotions_branches'      => $validator->errors()
+            'branch_promotions'      => $validator->errors()
 
         ]));
 

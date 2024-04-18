@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as Image;
 use App\Models\BranchCoverImage;
 use App\Models\Business;
+use App\Models\BusinessBranch;
 use App\Http\Requests\BusinessBranchCoverImageRequest;
 use App\Http\Resources\BusinessBranchCoverImageResource;
 use Ramsey\Uuid\Uuid;
@@ -30,25 +31,41 @@ class BranchCoverImageController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+   
+
+public function index()
 {
     try {
         // Obtener el ID del usuario autenticado
         $userId = Auth::id();
 
-        // Obtener los IDs de los negocios asociados al usuario
-        $businessIds = Business::where('user_id', $userId)->pluck('id');
+        // Obtener las sucursales asociadas a los negocios del usuario
+        $businessBranches = BusinessBranch::whereHas('business', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->with('coverImages')->get();
 
-        // Obtener las imágenes de portada de las sucursales asociadas a los negocios del usuario
-        $branchCoverImages = BranchCoverImage::whereIn('business_id', $businessIds)->orderBy('id', 'desc')->get();
+        // Inicializar un array para almacenar las imágenes de portada agrupadas por sucursal
+        $groupedCoverImages = [];
 
-        // Devolver una respuesta JSON con las imágenes de portada de las sucursales
-        return response()->json(['branch_cover_images' => BusinessBranchCoverImageResource::collection($branchCoverImages)]);
+        // Iterar sobre las sucursales y agrupar las imágenes de portada por sucursal
+        foreach ($businessBranches as $branch) {
+            // Obtener el nombre de la sucursal
+            $branchName = $branch->branch_name; // Ajusta el nombre del atributo según la estructura de tu modelo
+            // Agregar las imágenes de portada al array asociado a la sucursal utilizando el nombre como clave
+            $groupedCoverImages[$branchName] = BusinessBranchCoverImageResource::collection($branch->coverImages);
+        }
+
+        // Devolver una respuesta JSON con las imágenes de portada agrupadas por sucursal
+        return response()->json(['grouped_branch_cover_images' => $groupedCoverImages]);
     } catch (\Exception $e) {
         // Manejar cualquier excepción que ocurra durante el proceso
         return response()->json(['message' => 'An error occurred: '.$e->getMessage()], 500);
     }
 }
+
+
+
+
 
 
 

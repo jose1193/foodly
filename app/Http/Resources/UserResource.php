@@ -50,6 +50,16 @@ class UserResource extends JsonResource {
 
         // Incluir las promociones de los negocios
         $promotions = $business->promotions->map(function ($promotion) {
+            // Obtener las imágenes de promoción asociadas a esta promoción
+            $promotionImages = $promotion->promotionImages->map(function ($image) {
+                return [
+                    'id' => $image->id,
+                    'promotion_image_uuid' => $image->promotion_image_uuid,
+                    'promotion_image_path' => $image->promotion_image_path,
+                    'promotion_id' => $image->promotion_id,
+                ];
+            })->toArray();
+
             return [
                 'id' => $promotion->id,
                 'promotion_uuid' => $promotion->promotion_uuid,
@@ -60,6 +70,7 @@ class UserResource extends JsonResource {
                 'promotion_type' => $promotion->promotion_type,
                 'promotion_status' => $promotion->promotion_status,
                 'business_id' => $promotion->business_id,
+                'promotion_images' => $promotionImages,
             ];
         })->toArray();
 
