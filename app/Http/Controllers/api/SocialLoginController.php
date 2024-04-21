@@ -86,10 +86,13 @@ class SocialLoginController extends Controller
     $formattedTokenCreatedAt = $tokenCreatedAt->format('Y-m-d H:i:s');
             // Devolver la respuesta con los datos relevantes
             return response()->json([
-                'user' => new UserResource($user),
+                'message' => 'User logged successfully',
                 'token' => explode('|', $token)[1],
                 'token_type' => 'Bearer',
-                'token_created_at' => $formattedTokenCreatedAt, 
+                'token_created_at' => $formattedTokenCreatedAt,
+                'user' => new UserResource($user),
+                
+                 
             ], 200);
         } else {
             // Crear un array con los datos del usuario del proveedor

@@ -35,11 +35,19 @@ public function __construct()
     public function login(LoginRequest $request) {
     $data = $request->validated();
 
+    // Validar el formato del correo electrónico
+    $email = filter_var($data['email'], FILTER_VALIDATE_EMAIL);
+    if (!$email) {
+        return response()->json([
+           'message' => 'Invalid credentials'
+        ], 422);
+    }
+    
     $user = User::where('email', $data['email'])->first();
 
     if (!$user || !Hash::check($data['password'], $user->password)) {
         return response()->json([
-            'message' => 'Email or password is incorrect!'
+            'message' => 'Invalid credentials'
         ], 401);
     }
 
@@ -72,11 +80,13 @@ public function __construct()
     $formattedTokenCreatedAt = $tokenCreatedAt->format('Y-m-d H:i:s');
 
     return response()->json([
-        'user' => $userResource,
+        'message' => 'User logged successfully',
         'token' => explode('|', $token)[1],
         'token_type' => 'Bearer',
         'token_created_at' => $formattedTokenCreatedAt, 
-        'message' => 'User logged successfully',
+        'user' => $userResource,
+        
+        
     ])->withCookie($cookie);
 }
 

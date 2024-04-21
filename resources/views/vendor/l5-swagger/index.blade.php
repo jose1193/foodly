@@ -102,6 +102,7 @@
 
                 requestInterceptor: function(request) {
                     request.headers['X-CSRF-TOKEN'] = '{{ csrf_token() }}';
+                    request.headers['Cache-Control'] = 'no-cache'; // Esta línea deshabilita la caché
                     return request;
                 },
 
@@ -121,6 +122,7 @@
                 persistAuthorization: "{!! config('l5-swagger.defaults.ui.authorization.persist_authorization') ? 'true' : 'false' !!}",
 
             })
+
 
             window.ui = ui
 

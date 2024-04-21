@@ -152,64 +152,6 @@
                 }
             }
         },
-        "/users": {
-            "get": {
-                "tags": ["Users"],
-                "summary": "Get all registered users",
-                "responses": {
-                    "200": {
-                        "description": "List of registered users",
-                        "content": {
-                            "application/json": {
-                                "example": [
-                                    {
-                                        "uuid": "a1b2c3d4-5e6f-7g8h-9i10",
-                                        "name": "John",
-                                        "last_name": "Doe",
-                                        "username": "john_doe",
-                                        "email": "john@example.com",
-                                        "date_of_birth": "1990-01-01",
-                                        "phone": "123-456-7890",
-                                        "address": "123 Main St",
-                                        "zip_code": "12345",
-                                        "city": "Exampleville",
-                                        "country": "Exampleland",
-                                        "gender": "Male",
-                                        "role_id": 1
-                                    },
-                                    {
-                                        "uuid": "ID-m15n16o1-7p18q19r",
-                                        "name": "Jane",
-                                        "last_name": "Smith",
-                                        "username": "jane_smith",
-                                        "email": "jane@example.com",
-                                        "date_of_birth": "1995-02-15",
-                                        "phone": "987-654-3210",
-                                        "address": "456 Oak St",
-                                        "zip_code": "54321",
-                                        "city": "Sampletown",
-                                        "country": "Sampleland",
-                                        "gender": "Female",
-                                        "role_id": 2
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ]
-            }
-        },
         "/update-password": {
             "post": {
                 "tags": ["Users"],
@@ -4091,6 +4033,11 @@
             "UserRegistration": {
                 "type": "object",
                 "properties": {
+                    "photo": {
+                        "type": "string",
+                        "description": "Photo of the user",
+                        "format": "binary"
+                    },
                     "name": {
                         "type": "string",
                         "description": "Name of the user"
@@ -4139,11 +4086,6 @@
                     "gender": {
                         "type": "string",
                         "description": "Gender of the user"
-                    },
-                    "photo": {
-                        "type": "string",
-                        "description": "Photo of the user",
-                        "format": "binary"
                     },
                     "role_id": {
                         "type": "integer",
