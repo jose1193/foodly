@@ -44,7 +44,7 @@ class CategoryRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'categories'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

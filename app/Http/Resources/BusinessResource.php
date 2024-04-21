@@ -36,7 +36,7 @@ class BusinessResource extends JsonResource
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
             //'business_branch' => $this->businessBranch,
-            'has_branch' => $this->businessBranch->isNotEmpty() 
+            //'has_branch' => $this->businessBranch->isNotEmpty() 
         ];
     }
 

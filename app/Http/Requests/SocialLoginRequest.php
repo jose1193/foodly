@@ -6,8 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-
-class PromotionBranchImageRequest extends FormRequest
+class SocialLoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,14 +22,17 @@ class PromotionBranchImageRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-    {
-        return [
-            'promotion_branch_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048',
-            'promotion_branch_id' => 'required|exists:promotion_branches,id',
-        ];
-    }
+{
+    return [
+        'provider' => 'required|string|min:3|max:10',
+        'access_provider_token' => 'required|string|max:255',
+         
+    ];
+}
 
-    public function failedValidation(Validator $validator)
+
+
+     public function failedValidation(Validator $validator)
 
     {
 

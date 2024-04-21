@@ -25,12 +25,11 @@ class BiometricAuthController extends Controller
 {
     try {
         // Verifica si el usuario está autenticado
-        if (!Auth::check()) {
+        $user = auth()->user();
+
+        if (!$user) {
             return response()->json(['error' => 'Unauthenticated user'], 401);
         }
-
-        // Obtiene el usuario autenticado
-        $user = Auth::user();
 
         // Elimina el token de acceso actual del usuario
         $request->user()->currentAccessToken()->delete();
@@ -38,9 +37,8 @@ class BiometricAuthController extends Controller
         // Crea un nuevo token de acceso para el usuario
         $token = $user->createToken('auth_token')->plainTextToken;
 
-       // Establece una cookie con el nuevo token (opcional)
-       $cookie = cookie('token', $token, 60 * 24 * 365); // 1 año de duración
-
+        // Establece una cookie con el nuevo token (opcional)
+        $cookie = cookie('token', $token, 60 * 24 * 365); // 1 año de duración
 
         // Recurso del usuario (opcional)
         $userResource = new UserResource($user);

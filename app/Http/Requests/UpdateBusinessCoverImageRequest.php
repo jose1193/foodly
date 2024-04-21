@@ -38,7 +38,7 @@ class UpdateBusinessCoverImageRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'business_image'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

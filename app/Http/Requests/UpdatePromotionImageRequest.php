@@ -39,7 +39,7 @@ class UpdatePromotionImageRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'promotion_image'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

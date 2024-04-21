@@ -114,33 +114,14 @@ public function logout2()
 }
 
 
-// DETAILS CURRENT USER
- // get the authenticated user method
-   public function user(Request $request) {
-    // Get the authenticated user
-    $user = $request->user();
-
-    // Create a UserResource with basic user details
-    $userResource = new UserResource($user);
-
-    // Obtain the roles assigned to the user
-    $userRoles = $user->roles->pluck('name')->all();
-
-    // Add the roles information to the UserResource data
-    $userResourceData = $userResource->toArray($request);
-    $userResourceData['user_roles'] = $userRoles;
-
-    // Return the modified UserResource data
-    return response()->json($userResourceData);
-}
-
 
 // UPDATE USER PASSWORD
 public function updatePassword(Request $request)
-   {
+{
+    try {
         $request->validate([
             'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'confirmed'],
+            'new_password' => ['required', 'string', 'min:5','max:30', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>])[A-Za-z\d!@#$%^&*()\-_=+{};:,<>.]{5,}$/'],
         ]);
 
         $user = Auth::user();
@@ -149,92 +130,95 @@ public function updatePassword(Request $request)
             return response()->json(['error' => 'Current password does not match'], 401);
         }
 
-        $user->password = Hash::make($request->password);
+        $user->password = Hash::make($request->new_password);
         $user->save();
 
         return response()->json(['message' => 'Password updated successfully']);
+    } catch (ValidationException $e) {
+        return response()->json(['error' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
     }
+}
 
-    // RESET PASSWORD LINK
-    public function forgotPassword(Request $request)
-    {
-        $request->validate(['email' => 'required|email']);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
 
-        if ($status === Password::RESET_LINK_SENT) {
-            return response()->json(['message' => 'Link de restablecimiento de contraseña enviado al correo electrónico.']);
-        } else {
-            return response()->json(['error' => 'No se pudo enviar el link de restablecimiento de contraseña.'], 500);
+//RESET PASSWORD PAGE MAIL
+public function resetPassword(Request $request)
+{
+    $request->validate([
+        'token' => 'required',
+        'email' => 'required|email',
+        'password' => 'required|confirmed|min:8',
+    ]);
+
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($user, $password) {
+            $user->forceFill([
+                'password' => Hash::make($password),
+            ])->save();
         }
+    );
+
+    if ($status === Password::PASSWORD_RESET) {
+        return response()->json(['message' => 'Contraseña restablecida correctamente.']);
+    } else {
+        return response()->json(['error' => 'No se pudo restablecer la contraseña. Verifique el enlace o vuelva a intentarlo más tarde.'], 500);
     }
-
-    //RESET PASSWORD PAGE MAIL
-    public function resetPassword(Request $request)
-    {
-        $request->validate([
-            'token' => 'required',
-            'email' => 'required|email',
-            'password' => 'required|confirmed|min:8',
-        ]);
-
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                ])->save();
-            }
-        );
-
-        if ($status === Password::PASSWORD_RESET) {
-            return response()->json(['message' => 'Contraseña restablecida correctamente.']);
-        } else {
-            return response()->json(['error' => 'No se pudo restablecer la contraseña.'], 500);
-        }
-    }
+}
 
 
 
     // UPDATE PROFILE USER
     public function updateProfile(Request $request, UpdateUserProfileInformation $updater)
 {
+    // Validar la solicitud
+    $validatedData = $request->validate([
+        'name' => 'string|max:255',
+        'email' => 'string|email|max:255|unique:users,email,' . $request->user()->id,
+        // Agregar más reglas de validación según sea necesario
+    ]);
+
+    // Obtener el usuario actual
     $user = $request->user();
 
+    // Verificar si el usuario tiene permiso para actualizar su perfil
+    if ($user->id !== $request->user()->id) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
     try {
-        $updater->update($user, $request->all());
+        // Actualizar el perfil del usuario
+        $updater->update($user, $validatedData);
     } catch (ValidationException $e) {
         return response()->json(['message' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        // Manejar otras excepciones
+        return response()->json(['message' => 'An error occurred while updating profile'], 500);
     }
-
-    
-  // Obtener el usuario actualizado después de la actualización
-    $updatedUser = $request->user();
 
     // Obtener el primer rol asignado al usuario actualizado
-    $userRole = $updatedUser->roles->first()->name;
+    $userRole = $user->roles->first()->name;
 
-    // Agregar el nombre del rol al objeto de usuario
-    $updatedUser->user_role = $userRole;
-
-    // Remover la relación pivot para evitar mostrarla
-    unset($updatedUser->roles);
-
-
-    // Devolver el objeto completo del usuario en la respuesta
-    return response()->json(['user' => $updatedUser, 'message' => 'Profile successfully updated']);
+    // Devolver el objeto completo del usuario en la respuesta sin mostrar roles
+    return response()->json(['user' => $user->makeVisible('user_role')->toArray(), 'message' => 'Profile successfully updated']);
 }
 
-        // GET ALL USERS
-     public function getUsers()
-    {
 
-        
-        $users = User::all();
-        return response()->json(['users' => $users], 200);
+        // GET ALL USERS
+     public function getUsers(Request $request)
+{
+    // Verificar si el usuario tiene permiso para acceder a la lista de usuarios
+    if (!Auth::user()->isAdmin()) {
+        return response()->json(['message' => 'Unauthorized'], 403);
     }
+
+    // Obtener los usuarios paginados
+    $users = User::paginate();
+
+    return response()->json(['users' => $users], 200);
+}
 
 // REGISTER
 

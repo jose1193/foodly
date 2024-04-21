@@ -38,7 +38,7 @@ class UpdateCategoryImageRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'categories'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

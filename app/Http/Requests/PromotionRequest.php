@@ -45,7 +45,7 @@ class PromotionRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'promotion'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

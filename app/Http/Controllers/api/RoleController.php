@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Http\JsonResponse;
 
+
+
 class RoleController extends Controller
 {
     /**
@@ -51,17 +53,27 @@ class RoleController extends Controller
      */
 
  public function store(Request $request)
-    {
-        $this->validate($request, [
-            'name' => 'required|unique:roles,name',
-            'permission' => 'required',
-        ]);
-    
+{
+    $request->validate([
+        'name' => 'required|unique:roles,name',
+        'permission' => 'required|array',
+        'permission.*' => 'exists:permissions,id',
+    ]);
+
+    try {
+        DB::beginTransaction();
+
         $role = Role::create(['name' => $request->input('name')]);
         $role->syncPermissions($request->input('permission'));
-    
-          return response()->json(['message' => 'Role created successfully'], 200);
+
+        DB::commit();
+
+        return response()->json(['message' => 'Role created successfully'], 201);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Failed to create role'], 500);
     }
+}
 
    
     /**
@@ -109,14 +121,15 @@ class RoleController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
-    {
-     
+{
+    $request->validate([
+        'name' => 'required',
+        'permission' => 'required|array',
+        'permission.*' => 'exists:permissions,id',
+    ]);
 
-        $request->validate([
-            'name' => 'required',
-            'permission' => 'required|array',
-            'permission.*' => 'exists:permissions,id',
-        ]);
+    try {
+        DB::beginTransaction();
 
         $role = Role::findOrFail($id);
         $role->name = $request->input('name');
@@ -124,8 +137,14 @@ class RoleController extends Controller
 
         $role->syncPermissions($request->input('permission'));
 
+        DB::commit();
+
         return response()->json(['message' => 'Role updated successfully'], 200);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Failed to update role'], 500);
     }
+}
     
     /**
      * Remove the specified resource from storage.
@@ -134,11 +153,18 @@ class RoleController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
-    {
-       
+{
+    try {
+        DB::beginTransaction();
 
         Role::findOrFail($id)->delete();
 
+        DB::commit();
+
         return response()->json(['message' => 'Role deleted successfully'], 200);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Failed to delete role'], 500);
     }
+}
 }

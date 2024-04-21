@@ -12,6 +12,7 @@ class UserResource extends JsonResource {
      * @return array<string, mixed>
      */
  public function toArray(Request $request): array {
+    
     $data = [
         'id' => $this->id,
         'uuid' => $this->uuid,
@@ -20,9 +21,9 @@ class UserResource extends JsonResource {
         'last_name' => $this->last_name,
         'username' => $this->username,
         'email' => $this->email,
+        'email_verified_at' => $this->email_verified_at,
         'date_of_birth' => $this->date_of_birth,
         'phone' => $this->phone,
-        'google_id' => $this->google_id,
         'address' => $this->address,
         'zip_code' => $this->zip_code,
         'city' => $this->city,
@@ -33,6 +34,7 @@ class UserResource extends JsonResource {
         'deleted_at' => $this->deleted_at,
         'user_role' => $this->roles->pluck('name')->first() ?? null,
         'role_id' => $this->roles->pluck('id')->first() ?? null,
+        'social_provider' => $this->providers->isNotEmpty() ? $this->providers : [],
     ];
 
     // Incluir los negocios del usuario

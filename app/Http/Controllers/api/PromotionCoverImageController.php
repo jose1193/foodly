@@ -29,32 +29,24 @@ class PromotionCoverImageController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+   public function index()
 {
     try {
         // Obtener el ID del usuario autenticado
         $userId = auth()->id();
 
-        // Obtener todos los negocios asociados al usuario autenticado
-        $businesses = User::findOrFail($userId)->businesses;
+        // Obtener todos los negocios asociados al usuario autenticado con carga ansiosa de promociones e imágenes
+        $businesses = User::findOrFail($userId)->businesses()->with('promotions.promotionImages')->get();
 
         // Inicializar un array para almacenar las imágenes de promoción agrupadas por nombre de promoción
         $groupedPromotionImages = [];
 
-        // Iterar sobre cada negocio y obtener las promociones asociadas a cada uno
+        // Iterar sobre cada negocio y sus promociones para agrupar las imágenes de promoción
         foreach ($businesses as $business) {
-            // Obtener las promociones del negocio
-            $promotions = $business->promotions;
-
-            // Iterar sobre cada promoción y obtener las imágenes de promoción asociadas a cada una
-            foreach ($promotions as $promotion) {
-                // Obtener el título de la promoción
+            foreach ($business->promotions as $promotion) {
                 $promotionTitle = $promotion->promotion_title;
-
-                // Obtener las imágenes de promoción de la promoción
                 $promotionImages = $promotion->promotionImages;
 
-                // Agregar las imágenes de promoción al array asociado al título de la promoción
                 $groupedPromotionImages[$promotionTitle] = PromotionImageResource::collection($promotionImages);
             }
         }
@@ -65,6 +57,7 @@ class PromotionCoverImageController extends Controller
         return response()->json(['message' => 'Error fetching promotion images'], 500);
     }
 }
+
 
 
 

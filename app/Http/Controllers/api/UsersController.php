@@ -58,42 +58,45 @@ class UsersController extends Controller
 public function store(Request $request)
 {
     try {
-        $this->validateUser($request);
-
-        $input = $request->all();
-
+        // Validar datos de entrada
         $request->validate([
             'email' => ['required', 'email', 'unique:users,email'],
             'username' => ['required', 'unique:users,username'],
             // Agrega otras reglas de validación según sea necesario
         ]);
 
+        // Hash de la contraseña
+        $input = $request->all();
         $input['password'] = Hash::make($input['password']);
-        
-        // Genera un UUID utilizando Ramsey UUID
+
+        // Generar UUID
         $input['uuid'] = Uuid::uuid4()->toString();
 
+        // Crear usuario
         $user = User::create($input);
-        
-        // Sincronizar los roles del usuario
+
+        // Sincronizar roles del usuario
         $this->syncRoles($user, $request->input('role_id'));
 
-        // Obtener el primer rol del usuario
+        // Obtener y agregar información de roles al usuario
         $userRole = $user->roles->pluck('name')->first() ?? null;
         $roleId = $user->roles->pluck('id')->first() ?? null;
-        
-        // Agregar los roles al objeto $user
         $user->user_role = $userRole;
         $user->role_id = $roleId;
 
-        // Create the user resource
+        // Crear el recurso de usuario
         $userResource = new UserResource($user);
 
         return $userResource;
     } catch (\Illuminate\Validation\ValidationException $e) {
+        // Manejar errores de validación
         return response()->json(['errors' => $e->errors()], 422);
+    } catch (\Exception $e) {
+        // Manejar otros errores
+        return response()->json(['message' => 'Error occurred while creating user'], 500);
     }
 }
+
 
 
 
@@ -227,6 +230,11 @@ public function store(Request $request)
 public function restore($uuid)
 {
     try {
+        // Validar si el UUID proporcionado es válido
+        if (!Uuid::isValid($uuid)) {
+            return response()->json(['message' => 'Invalid UUID'], 400);
+        }
+
         // Buscar el usuario eliminado con el UUID proporcionado
         $user = User::where('uuid', $uuid)->onlyTrashed()->first();
 
@@ -234,10 +242,15 @@ public function restore($uuid)
             return response()->json(['message' => 'User not found in trash'], 404);
         }
 
+        // Verificar si el usuario ya ha sido restaurado
+        if (!$user->trashed()) {
+            return response()->json(['message' => 'User already restored'], 400);
+        }
+
         // Restaurar el usuario eliminado
         $user->restore();
 
-        // Devolver una respuesta JSON con el mensaje, el recurso del usuario restaurado
+        // Devolver una respuesta JSON con el mensaje y el recurso del usuario restaurado
         return response()->json([
             'message' => 'User restored successfully',
             'user' => new UserResource($user)
@@ -247,6 +260,7 @@ public function restore($uuid)
         return response()->json(['message' => 'Error occurred while restoring User'], 500);
     }
 }
+
 
 
 }

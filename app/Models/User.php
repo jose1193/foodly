@@ -36,7 +36,6 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
-        'google_id',
         'address',    // Add the new fields here
         'zip_code',
         'city',
@@ -83,5 +82,10 @@ class User extends Authenticatable
     public function businesses()
     {
         return $this->hasMany(Business::class);
+    }
+
+    public function providers()
+    {
+        return $this->hasMany(Provider::class,'user_id');
     }
 }

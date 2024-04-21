@@ -36,30 +36,22 @@ class PromotionBranchImageController extends Controller
         // Obtener el ID del usuario autenticado
         $userId = auth()->id();
 
-        // Obtener todos los negocios asociados al usuario autenticado
-        $businesses = User::findOrFail($userId)->businesses;
+        // Obtener todos los negocios asociados al usuario autenticado usando relaciones
+        $user = User::with('businesses.businessBranch.promotionsbranches.promotionBranchesImages')->findOrFail($userId);
 
         // Inicializar un array para almacenar las imágenes de promoción agrupadas por nombre de sucursal
         $groupedPromotionImages = [];
 
         // Iterar sobre cada negocio y obtener las imágenes de promoción asociadas a cada sucursal
-        foreach ($businesses as $business) {
-            // Obtener las sucursales del negocio
-            $branches = $business->businessBranch;
-
+        foreach ($user->businesses as $business) {
             // Iterar sobre cada sucursal y obtener las promociones y sus imágenes asociadas
-            foreach ($branches as $branch) {
-                // Obtener el nombre de la sucursal
+            foreach ($business->businessBranch as $branch) {
                 $branchName = $branch->branch_name;
 
-                // Obtener las promociones de la sucursal
-                $promotions = $branch->promotionsbranches;
-
-                // Inicializar un array para almacenar las imágenes de promoción asociadas a cada promoción
                 $promotionImages = [];
 
                 // Iterar sobre cada promoción y obtener sus imágenes asociadas
-                foreach ($promotions as $promotion) {
+                foreach ($branch->promotionsbranches as $promotion) {
                     // Obtener las imágenes de promoción de la promoción
                     $images = $promotion->promotionBranchesImages;
 
@@ -75,10 +67,10 @@ class PromotionBranchImageController extends Controller
         // Devolver todas las imágenes de promoción agrupadas por nombre de sucursal como respuesta JSON
         return response()->json(['grouped_promotion_images' => $groupedPromotionImages], 200);
     } catch (\Exception $e) {
-        return response()->json(['message' => 'Error fetching promotion images'], 500);
+        // Devolver un mensaje de error detallado en caso de excepción
+        return response()->json(['message' => 'Error fetching promotion images: ' . $e->getMessage()], 500);
     }
 }
-
 
 
 

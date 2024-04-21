@@ -53,7 +53,7 @@ class BusinessRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'business'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

@@ -24,6 +24,9 @@ use App\Http\Controllers\Api\PromotionController;
 use App\Http\Controllers\Api\PromotionCoverImageController;
 use App\Http\Controllers\Api\PromotionBranchController;
 use App\Http\Controllers\Api\PromotionBranchImageController;
+use App\Http\Controllers\Api\SocialLoginController;
+use App\Http\Controllers\Api\CreateUserController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -36,48 +39,10 @@ use App\Http\Controllers\Api\PromotionBranchImageController;
 */
 
 
-///------------- ROUTE GOOGLE AUTH ---------///
-Route::get('/google-auth/redirect', function () {
-    return Socialite::driver('google')->redirect();
-});
- 
-
-
-Route::get('/google-auth/callback', function () {
-    $googleUser = Socialite::driver('google')->user();
- 
-    $user = User::updateOrCreate([
-        'google_id' => $googleUser->id,
-    ], [
-        'name' => $googleUser->name,
-        'email' => $googleUser->email,
-         'email_verified_at' => now(),
-       
-    ]);
- 
- 
-     // Accede al token del usuario autenticado
-        $token = $googleUser->token;
-     
-        $tokenData = $user->createToken('API Token')->plainTextToken;
-
-
-    Auth::login($user);
- 
-    return response()->json([
-            'message' => 'Authentication successful',
-            'user' => $user,
-            'token' => $token,
-            'token_data' => $tokenData
-        ]);
-});
-
-
-///------------- END ROUTE GOOGLE AUTH ---------///
 
 Route::post('login', [AuthController::class, 'login']);
 
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [CreateUserController::class, 'store']);
 
 Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 
@@ -87,16 +52,21 @@ Route::get('/email-available/{email}', [CheckEmailController::class, 'checkEmail
 
 Route::get('/categories', [CategoryController::class, 'index']);
 
+// Route related to User Social Login
+Route::post('/social-login', [SocialLoginController::class, 'handleProviderCallback']);
+
+
+
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
    
     // Rutas protegidas por autenticación y verificación
     Route::post('logout', [AuthController::class, 'logout']);
-    Route::get('user', [AuthController::class, 'user']);
+
     Route::get('/users', [AuthController::class, 'getUsers']);
     Route::post('update-password', [AuthController::class, 'updatePassword']);
     
     Route::post('reset-password', [AuthController::class, 'resetPassword']);
-    Route::post('update-profile', [AuthController::class, 'updateProfile']);
+    Route::post('update-profile', [CreateUserController::class, 'update']);
     Route::post('update-profile-photo', [ProfilePhotoController::class, 'update']);
     
 
@@ -214,7 +184,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::delete('/branch-promotions-images-delete/{uuid}', [PromotionBranchImageController::class, 'destroy']);
     Route::post('/branch-promotions-images-update/{uuid}', [PromotionBranchImageController::class, 'updateImage']);
     
-
+    
 });
 
 //Route::fallback([ErrorController::class, 'notFound']);

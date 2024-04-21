@@ -40,7 +40,7 @@ class BusinessBranchCoverImageRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'branch_cover_images'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

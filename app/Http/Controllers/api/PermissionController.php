@@ -26,23 +26,31 @@ class PermissionController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|unique:permissions,name',
-        ]);
+{
+    $request->validate([
+        'name' => 'required|unique:permissions,name|max:255', // Agregar reglas de validación necesarias
+    ]);
 
+    try {
         $permission = Permission::create([
             'name' => $request->input('name'),
         ]);
 
-        return response()->json(['message' => 'Permission created successfully'], 200);
+        return response()->json(['message' => 'Permission created successfully'], 201);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Failed to create permission'], 500);
     }
+}
 
     public function show($id)
-    {
+{
+    try {
         $permission = Permission::findOrFail($id);
         return response()->json(['permission' => $permission], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Permission not found'], 404);
     }
+}
 
     public function edit($id)
     {
@@ -50,23 +58,31 @@ class PermissionController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $request->validate([
-            'name' => 'required|unique:permissions,name,' . $id,
-        ]);
+{
+    $request->validate([
+        'name' => 'required|unique:permissions,name,' . $id . '|max:255', // Agregar reglas de validación necesarias
+    ]);
 
+    try {
         $permission = Permission::findOrFail($id);
         $permission->name = $request->input('name');
         $permission->save();
 
         return response()->json(['message' => 'Permission updated successfully'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Failed to update permission'], 500);
     }
+}
 
     public function destroy($id)
-    {
+{
+    try {
         $permission = Permission::findOrFail($id);
         $permission->delete();
 
         return response()->json(['message' => 'Permission deleted successfully'], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Failed to delete permission'], 500);
     }
+}
 }

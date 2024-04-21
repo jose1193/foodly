@@ -40,7 +40,7 @@ class PromotionCoverImageRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'promotion_images'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

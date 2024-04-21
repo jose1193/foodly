@@ -29,19 +29,21 @@ class BusinessCoverImageController extends Controller
     public function index()
 {
     try {
-        // Obtener el ID del usuario autenticado
-        $userId = auth()->id();
-
-        // Obtener todos los negocios asociados al usuario autenticado
-        $businesses = User::findOrFail($userId)->businesses;
+        // Obtener el usuario autenticado con sus negocios y las imágenes de portada relacionadas
+        $user = auth()->user()->load('businesses.coverImages');
 
         // Inicializar un array para almacenar las imágenes de portada agrupadas por nombre de negocio
         $groupedCoverImages = [];
 
-        // Iterar sobre cada negocio y obtener las imágenes de portada asociadas a cada uno
-        foreach ($businesses as $business) {
+        // Iterar sobre cada negocio del usuario
+        foreach ($user->businesses as $business) {
             // Obtener el nombre del negocio
             $businessName = $business->business_name;
+
+            // Verificar si el usuario tiene permiso para acceder a este negocio
+            if ($business->user_id !== $user->id) {
+                continue; // Si no tiene permiso, pasar al siguiente negocio
+            }
 
             // Obtener las imágenes de portada del negocio
             $coverImages = $business->coverImages;
@@ -53,13 +55,14 @@ class BusinessCoverImageController extends Controller
         // Devolver todas las imágenes de portada agrupadas por nombre de negocio como respuesta JSON
         return response()->json(['grouped_business_cover_images' => $groupedCoverImages], 200);
     } catch (\Exception $e) {
-        return response()->json(['message' => 'Error fetching business cover images'], 500);
+        // Devolver un mensaje de error detallado en caso de excepción
+        return response()->json(['message' => 'Error fetching business cover images: ' . $e->getMessage()], 500);
     }
 }
 
 
-    
- public function store(BusinessCoverImageRequest $request)
+
+  public function store(BusinessCoverImageRequest $request)
 {
     try {
         // Validar la solicitud entrante
@@ -86,11 +89,13 @@ class BusinessCoverImageController extends Controller
             'success' => true,
             'message' => 'Business cover images stored successfully',
             'business_cover_images' => $businessImages,
-        ]);
+        ], 201);
     } catch (\Exception $e) {
+        // En caso de error, devuelve una respuesta de error
         return response()->json(['error' => 'Error storing business cover images'], 500);
     }
 }
+
 
 
 
@@ -135,9 +140,14 @@ private function deleteOldImage($oldImagePath)
 
 
 
-    public function show($uuid)
+   public function show($uuid)
 {
     try {
+        // Validar el formato del UUID
+        if (!Uuid::isValid($uuid)) {
+            return response()->json(['error' => 'Invalid UUID format'], 400);
+        }
+
         // Encontrar todas las imágenes de portada del negocio por su business_image_uuid
         $businessCoverImages = BusinessCoverImage::where('business_image_uuid', $uuid)->get();
 
@@ -151,10 +161,13 @@ private function deleteOldImage($oldImagePath)
 
         // Devolver la colección de recursos de imágenes de portada del negocio bajo la clave 'images'
         return response()->json(['images' => $businessCoverImagesResources]);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['message' => 'Business cover images not found'], 404);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error retrieving business cover images'], 500);
     }
 }
+
 
 
 

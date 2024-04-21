@@ -43,7 +43,7 @@ class SubcategoryRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'subcategories'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

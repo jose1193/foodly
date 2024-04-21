@@ -38,7 +38,7 @@ class UpdateBranchLogoRequest extends FormRequest
 
             'message'   => 'Validation errors',
 
-            'business_branch'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 

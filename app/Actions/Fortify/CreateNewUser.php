@@ -4,23 +4,27 @@ namespace App\Actions\Fortify;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Response;
+
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Jetstream\Jetstream;
 use Illuminate\Http\JsonResponse;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Storage;
+
 use Illuminate\Support\Str;
-use Intervention\Image\ImageManagerStatic as Image;
+
 use Illuminate\Validation\Rules\Password;
 
-use App\Http\Requests\PhotoUploadRequest;
+
 use Ramsey\Uuid\Uuid;
 use Laravel\Sanctum\PersonalAccessToken;
 
 use App\Http\Resources\UserResource;
+use App\Models\Provider;
+
+use App\Helpers\ImageHelper;
+
 
 class CreateNewUser implements CreatesNewUsers
 {
@@ -77,7 +81,7 @@ protected function validateInput(array $input): \Illuminate\Contracts\Validation
                 'confirmed',
             ],
         'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['accepted', 'required'] : '',
-        'phone' => ['required', 'string', 'min:6', 'max:20'],
+        'phone' => ['required', 'string', 'min:4', 'max:20'],
         'address' => ['required', 'string', 'max:255'],
         'zip_code' => ['required', 'string', 'max:20'],
         'city' => ['required', 'string', 'max:255'],
@@ -119,41 +123,37 @@ protected function validateInput(array $input): \Illuminate\Contracts\Validation
 
        
     // Verificar si se envió una nueva foto
+    
+    
 if (isset($input['photo'])) {
     // Obtener el archivo de la solicitud
-    $photo = $input['photo'];
-
-    // Generar un nombre único para la foto
-    $randomString = Str::random(38); // Genera una cadena aleatoria de 40 caracteres
-    $photoName = $user->id . '_' . $randomString . '.' . $photo->getClientOriginalExtension();
-
-    // Crear una instancia de Intervention Image
-    $image = Image::make($photo->getRealPath());
-
-    // Obtienes el ancho y alto de la imagen original
-    $originalWidth = $image->width();
-    $originalHeight = $image->height();
-
-    // Verificamos si el ancho o el alto son mayores que 700 para redimensionar
-    if ($originalWidth > 700 || $originalHeight > 700) {
-        // Calculamos el factor de escala para mantener la relación de aspecto
-        $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
-
-        // Calculamos el nuevo ancho y alto para redimensionar la imagen
-        $newWidth = $originalWidth * $scaleFactor;
-        $newHeight = $originalHeight * $scaleFactor;
-
-        // Redimensionamos la imagen
-        $image->resize($newWidth, $newHeight);
-    }
-
-    // Almacenar la foto en el sistema de archivos
-    $image->save(storage_path('app/public/profile-photos/' . $photoName));
-
+   
+    $image = $input['photo'];
+    $photoPath = ImageHelper::storeAndResize($image, 'public/profile-photos');
+           
     // Asignar el nombre de la foto al usuario
-    $user->update(['profile_photo_path' => 'app/public/profile-photos/' . $photoName]);
+    $user->update(['profile_photo_path' => 'app/public/profile-photos/' . $photoPath]);
 }
 
+ // Verificar y guardar los datos del proveedor google,facebook, twitter etc etc si existen
+     if (isset($input['provider_id']) && isset($input['provider']) && isset($input['provider_avatar'])) {
+         // Obtener los datos del usuario del proveedor a través de Socialite
+         Provider::create([
+            'uuid' => Uuid::uuid4()->toString(),
+            'provider_id' => $input['provider_id'],
+            'provider' => $input['provider'],
+            'provider_avatar' => $input['provider_avatar'],
+            'user_id' => $user->id,
+        ]);
+
+        // Actualizar el campo email_verified_at si es necesario
+    if (!$user->email_verified_at) {
+        $user->email_verified_at = now();
+        $user->save();
+    }
+
+
+    }
         return $user;
     }
 
