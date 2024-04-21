@@ -73,25 +73,31 @@ class CreateUserController extends Controller
         // Token creation
         //$userToken = $user->createToken('API Token')->plainTextToken;
        
-        // Verificar y guardar los datos del proveedor si existen
-        if (isset($data['provider_id'], $data['provider'], $data['provider_avatar'])) {
+       // Verificar y guardar los datos del proveedor si existen
+if (isset($data['provider_id'], $data['provider'], $data['provider_avatar'])) {
+    // Verificar si los campos del proveedor no están vacíos
+    if (!empty($data['provider_id']) && !empty($data['provider']) && !empty($data['provider_avatar'])) {
         // Crear el proveedor asociado al usuario
         Provider::create([
-        'uuid' => Uuid::uuid4()->toString(),
-        'provider_id' => $data['provider_id'],
-        'provider' => $data['provider'],
-        'provider_avatar' => $data['provider_avatar'],
-        'user_id' => $user->id,
+            'uuid' => Uuid::uuid4()->toString(),
+            'provider_id' => $data['provider_id'],
+            'provider' => $data['provider'],
+            'provider_avatar' => $data['provider_avatar'],
+            'user_id' => $user->id,
         ]);
 
         // Actualizar el campo email_verified_at si es necesario
         if (!$user->email_verified_at) {
-        $user->email_verified_at = now();
-        $user->save();
+            $user->email_verified_at = now();
+            $user->save();
         }
-    } elseif ($request->has('provider_id') || $request->has('provider') || $request->has('provider_avatar')) {
-    throw new \Exception('Incomplete provider data');
+    } else {
+        throw new \Exception('Incomplete provider data');
     }
+} elseif ($request->has('provider_id') || $request->has('provider') || $request->has('provider_avatar')) {
+    throw new \Exception('Incomplete provider data');
+}
+
 
         DB::commit();
 
