@@ -13,7 +13,7 @@ use App\Http\Resources\PromotionBranchImageResource;
 use Ramsey\Uuid\Uuid;
 use App\Http\Requests\UpdatePromotionBranchImageRequest;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\DB;
 
 use App\Helpers\ImageHelper;
 
@@ -80,6 +80,9 @@ class PromotionBranchImageController extends Controller
      public function store(PromotionBranchImageRequest $request)
 {
     try {
+        // Iniciar una transacción de base de datos
+        DB::beginTransaction();
+
         // Validar la solicitud entrante
         $validatedData = $request->validated();
 
@@ -106,12 +109,18 @@ class PromotionBranchImageController extends Controller
             $promotionBranchImages[] = new PromotionBranchImageResource($promotionBranchImage);
         }
 
+        // Confirmar la transacción
+        DB::commit();
+
         return response()->json([
             'success' => true,
             'message' => 'Promotion Branch images stored successfully',
             'promotions_branches_images' => $promotionBranchImages,
         ], 201);
     } catch (\Exception $e) {
+        // Revertir la transacción en caso de error
+        DB::rollBack();
+
         // Manejar errores de manera más detallada
         return response()->json(['error' => $e->getMessage()], 500);
     }

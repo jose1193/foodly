@@ -67,6 +67,9 @@ class PromotionCoverImageController extends Controller
     public function store(PromotionCoverImageRequest $request)
 {
     try {
+        // Iniciar una transacción de base de datos
+        DB::beginTransaction();
+
         // Validar la solicitud entrante
         $validatedData = $request->validated();
         $promotionImages = [];
@@ -87,15 +90,22 @@ class PromotionCoverImageController extends Controller
             $promotionImages[] = new PromotionImageResource($promotionImage);
         }
 
+        // Confirmar la transacción
+        DB::commit();
+
         return response()->json([
             'success' => true,
             'message' => 'Promotion images stored successfully',
             'promotion_images' => $promotionImages,
         ]);
     } catch (\Exception $e) {
+        // Revertir la transacción en caso de error
+        DB::rollBack();
+        
         return response()->json(['error' => 'Error storing promotion images'], 500);
     }
 }
+
 
 
     /**
