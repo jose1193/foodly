@@ -6,8 +6,8 @@
     <title>Foodly APIs</title>
     <meta name="theme-color" content="#79005d" />
     <link rel="stylesheet" type="text/css" href="{{ l5_swagger_asset($documentation, 'swagger-ui.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('favicon/favicon-32x32.png') }}" sizes="32x32" />
-    <link rel="icon" type="image/png" href="{{ asset('favicon/favicon-16x16.png') }}" sizes="16x16" />
+    <link rel="icon" type="image/png" href="{{ env('APP_URL') }}/favicon/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="{{ env('APP_URL') }}/favicon/favicon-16x16.png" sizes="16x16" />
 
 
 
