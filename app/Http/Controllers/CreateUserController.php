@@ -32,7 +32,7 @@ class CreateUserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateUserRequest $request)
+  public function store(CreateUserRequest $request)
 {
     DB::beginTransaction();
 
@@ -40,25 +40,23 @@ class CreateUserController extends Controller
         // Validar la solicitud y obtener los datos validados
         $data = $request->validated();
 
-        // Obtener el ID del usuario actualmente autenticado
+        // Agregar uuid y hashear la contraseña
         $data['uuid'] = Uuid::uuid4()->toString();
         $data['password'] = Hash::make($data['password']);
-        // Verificar si se envió una nueva foto
-        if (isset($data['photo'])) {
-            // Obtener el archivo de la solicitud
-            $image = $data['photo'];
-            $photoPath = ImageHelper::storeAndResize($image, 'public/profile-photos');
-
-            if ($photoPath) {
-                // Asignar el nombre de la foto al usuario
-                $data['profile_photo_path'] = $photoPath;
-            } else {
-                throw new \Exception('Failed to upload profile photo');
-            }
-        }
 
         // Crear el usuario con los datos validados
         $user = User::create($data);
+        
+
+        // Verificar si se envió una nueva foto de perfil
+        if ($request->hasFile('photo')) {
+            // Obtener el archivo de la solicitud
+            $image = $request->file('photo');
+            $photoPath = ImageHelper::storeAndResize($image, 'public/profile-photos');
+
+            // Asignar el nombre de la foto al usuario
+            $user->update(['profile_photo_path' => $photoPath]);
+        }
 
         // Obtener el rol asociado al ID proporcionado
         $role = Role::find($data['role_id']);
@@ -68,40 +66,31 @@ class CreateUserController extends Controller
 
         // Asignar el rol al usuario
         $user->assignRole($role);
-        // Token creation
-        //$userToken = $user->createToken('API Token')->plainTextToken;
-       
-       // Verificar y guardar los datos del proveedor si existen
-if (isset($data['provider_id'], $data['provider'], $data['provider_avatar'])) {
-    // Verificar si los campos del proveedor no están vacíos
-    if (!empty($data['provider_id']) && !empty($data['provider']) && !empty($data['provider_avatar'])) {
-        // Crear el proveedor asociado al usuario
-        Provider::create([
-            'uuid' => Uuid::uuid4()->toString(),
-            'provider_id' => $data['provider_id'],
-            'provider' => $data['provider'],
-            'provider_avatar' => $data['provider_avatar'],
-            'user_id' => $user->id,
-        ]);
 
-        // Actualizar el campo email_verified_at si es necesario
-        if (!$user->email_verified_at) {
-            $user->email_verified_at = now();
-            $user->save();
+        // Verificar y guardar los datos del proveedor si existen
+        if (isset($data['provider_id'], $data['provider'], $data['provider_avatar'])) {
+            // Crear el proveedor asociado al usuario
+            Provider::create([
+                'uuid' => Uuid::uuid4()->toString(),
+                'provider_id' => $data['provider_id'],
+                'provider' => $data['provider'],
+                'provider_avatar' => $data['provider_avatar'],
+                'user_id' => $user->id,
+            ]);
+
+            // Actualizar el campo email_verified_at si es necesario
+            if (!$user->email_verified_at) {
+                $user->email_verified_at = now();
+                $user->save();
+            }
+        } elseif ($request->has('provider_id') || $request->has('provider') || $request->has('provider_avatar')) {
+            throw new \Exception('Incomplete provider data');
         }
-    } else {
-        throw new \Exception('Incomplete provider data');
-    }
-} elseif ($request->has('provider_id') || $request->has('provider') || $request->has('provider_avatar')) {
-    throw new \Exception('Incomplete provider data');
-}
-
 
         DB::commit();
 
         // Devolver una respuesta adecuada
-        return response()->json(['message' => 'User created successfully', 
-        'user' => new UserResource($user)], 201);
+        return response()->json(['message' => 'User created successfully', 'user' => new UserResource($user)], 201);
     } catch (\Exception $e) {
         // Manejar cualquier excepción ocurrida durante el proceso
         DB::rollback();
@@ -109,8 +98,24 @@ if (isset($data['provider_id'], $data['provider'], $data['provider_avatar'])) {
     }
 }
 
-
-
+//protected function createUser(array $input): User
+//{
+    //return User::create([
+        //'name' => $input['name'],
+       // 'last_name' => $input['last_name'],
+        //'username' => $input['username'],
+        //'date_of_birth' => $input['date_of_birth'],
+        //'uuid' => Uuid::uuid4()->toString(),
+        //'email' => $input['email'],
+        //'password' => Hash::make($input['password']),
+        //'phone' => $input['phone'],
+        //'address' => $input['address'],
+        //'zip_code' => $input['zip_code'],
+        //'city' => $input['city'],
+        //'country' => $input['country'],
+        //'gender' => $input['gender'],
+    //]);
+//}
     /**
      * Display the specified resource.
      */
