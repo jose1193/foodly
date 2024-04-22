@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
-
-use App\Http\Controllers\Controller;
+namespace App\Http\Controllers;
 use App\Models\BusinessBranch;
 use App\Http\Requests\BranchRequest;
 use App\Http\Resources\BranchResource;

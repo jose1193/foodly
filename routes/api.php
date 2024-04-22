@@ -4,28 +4,28 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Actions\Fortify\CreateNewUser;
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\RoleController;
-use App\Http\Controllers\Api\UsersController;
-use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UsersController;
+use App\Http\Controllers\PermissionController;
 //use App\Http\Controllers\Api\ErrorController;
 use Illuminate\Support\Facades\Response;
-use App\Http\Controllers\Api\ProfilePhotoController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\SubcategoryController;
-use App\Http\Controllers\Api\BusinessController;
-use App\Http\Controllers\Api\BusinessCoverImageController;
-use App\Http\Controllers\Api\CheckUsernameController;
-use App\Http\Controllers\Api\CheckEmailController;
-use App\Http\Controllers\Api\BranchController;
-use App\Http\Controllers\Api\BranchCoverImageController;
-use App\Http\Controllers\Api\BiometricAuthController;
-use App\Http\Controllers\Api\PromotionController;
-use App\Http\Controllers\Api\PromotionCoverImageController;
-use App\Http\Controllers\Api\PromotionBranchController;
-use App\Http\Controllers\Api\PromotionBranchImageController;
-use App\Http\Controllers\Api\SocialLoginController;
-use App\Http\Controllers\Api\CreateUserController;
+use App\Http\Controllers\ProfilePhotoController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\SubcategoryController;
+use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\BusinessCoverImageController;
+use App\Http\Controllers\CheckUsernameController;
+use App\Http\Controllers\CheckEmailController;
+use App\Http\Controllers\BranchController;
+use App\Http\Controllers\BranchCoverImageController;
+use App\Http\Controllers\BiometricAuthController;
+use App\Http\Controllers\PromotionController;
+use App\Http\Controllers\PromotionCoverImageController;
+use App\Http\Controllers\PromotionBranchController;
+use App\Http\Controllers\PromotionBranchImageController;
+use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\CreateUserController;
 
 /*
 |--------------------------------------------------------------------------
