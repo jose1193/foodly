@@ -4,23 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Business extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
      protected $fillable = [
         'business_uuid',
         'business_logo',
         'business_name',
         'business_email',
+        'business_phone',
         'business_address',
         'business_zipcode',
         'business_city',
         'business_country',
         'business_website',
-        'business_opening_hours',
-        'business_opening_date',
         'business_latitude',
         'business_longitude',
         'category_id',
@@ -41,4 +42,16 @@ class Business extends Model
     {
         return $this->hasMany(BusinessCoverImage::class, 'business_id');
     }
+
+    public function businessBranch()
+    {
+        return $this->hasMany(BusinessBranch::class, 'business_id');
+    }
+
+    public function promotions()
+{
+    return $this->hasMany(Promotion::class, 'business_id');
+}
+
+
 }

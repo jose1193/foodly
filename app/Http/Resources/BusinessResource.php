@@ -15,25 +15,28 @@ class BusinessResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'username' => $this->user->first()->username,
-            'user_email' => $this->user->first()->email,
+            //'username' => $this->user->username,
+            //'user_email' => $this->user->email,
+            'user_id' => $this->user_id,
             'business_id' => $this->id,
             'business_uuid' => $this->business_uuid,
+            'business_logo' => asset($this->business_logo),
             'business_name' => $this->business_name,
-            'business_logo' => $this->business_logo,
             'business_email' => $this->business_email,
+            'business_phone' => $this->business_phone,
             'business_address' => $this->business_address,
             'business_zipcode' => $this->business_zipcode,
             'business_city' => $this->business_city,
             'business_country' => $this->business_country,
             'business_website' => $this->business_website,
-            'business_opening_hours' => $this->business_opening_hours,
-            'business_opening_date' => $this->business_opening_date,
             'business_latitude' => $this->business_latitude,
             'business_longitude' => $this->business_longitude,
-            'category' => $this->category->first()->category_name,
+            'category_id' => $this->category_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
+            //'business_branch' => $this->businessBranch,
+            //'has_branch' => $this->businessBranch->isNotEmpty() 
         ];
     }
 

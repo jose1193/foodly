@@ -4,6 +4,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Intervention\Image\Facades\Image;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Contracts\Validation\Validator;
 
 class PhotoUploadRequest extends FormRequest
 {
@@ -25,7 +27,23 @@ class PhotoUploadRequest extends FormRequest
     public function rules()
     {
         return [
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Ejemplo de reglas, ajusta según tus necesidades
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048', // Ejemplo de reglas, ajusta según tus necesidades
         ];
+    }
+
+     public function failedValidation(Validator $validator)
+
+    {
+
+        throw new HttpResponseException(response()->json([
+
+            'success'   => false,
+
+            'message'   => 'Validation errors',
+
+            'errors'      => $validator->errors()
+
+        ]));
+
     }
 }

@@ -10,6 +10,9 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -18,6 +21,7 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
     use HasRoles;
+    use SoftDeletes;
     /**
      * The attributes that are mass assignable.
      *
@@ -32,7 +36,6 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
-        'google_id',
         'address',    // Add the new fields here
         'zip_code',
         'city',
@@ -79,5 +82,10 @@ class User extends Authenticatable
     public function businesses()
     {
         return $this->hasMany(Business::class);
+    }
+
+    public function providers()
+    {
+        return $this->hasMany(Provider::class,'user_id');
     }
 }

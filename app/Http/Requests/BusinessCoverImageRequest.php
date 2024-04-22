@@ -26,7 +26,7 @@ class BusinessCoverImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'business_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'business_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048',
             'business_id' => 'required|exists:businesses,id',
         ];
     }
@@ -41,7 +41,7 @@ public function failedValidation(Validator $validator)
 
             'message'   => 'Validation errors',
 
-            'businessImages'      => $validator->errors()
+            'errors'      => $validator->errors()
 
         ]));
 
