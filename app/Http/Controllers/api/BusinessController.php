@@ -1,10 +1,6 @@
 <?php
 
-<<<<<<< HEAD
-namespace App\Http\Controllers\api;
-=======
 namespace App\Http\Controllers\API;
->>>>>>> SocialLogin
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -53,7 +49,7 @@ class BusinessController extends Controller
         // Manejar errores de consulta SQL
         return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
     } catch (\Exception $e) {
-        // Manejar cualquier otra excepci贸n que ocurra durante el proceso
+        // Manejar cualquier otra excepción que ocurra durante el proceso
         return response()->json(['message' => 'Error retrieving businesses'], 500);
     }
 }
@@ -65,7 +61,7 @@ class BusinessController extends Controller
         // Obtener el negocio por su UUID, incluidos los eliminados
         $business = Business::withTrashed()->where('business_uuid', $uuid)->first();
         
-        // Verificar si se encontr贸 el negocio
+        // Verificar si se encontró el negocio
         if ($business) {
             // Si se encuentra el negocio, devolver una respuesta 200 con los datos del negocio
             return response()->json(['message' => 'Business retrieved successfully', 'business' => new BusinessResource($business)], 200);
@@ -77,7 +73,7 @@ class BusinessController extends Controller
         // Manejar errores de consulta SQL
         return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
     } catch (\Exception $e) {
-        // Manejar cualquier otra excepci贸n que ocurra durante el proceso
+        // Manejar cualquier otra excepción que ocurra durante el proceso
         return response()->json(['message' => 'Error retrieving business'], 500);
     }
 }
@@ -223,7 +219,7 @@ public function restore($uuid)
             'business' => new BusinessResource($business)
         ], 200);
     } catch (\Exception $e) {
-        // Manejar cualquier excepci贸n y devolver una respuesta de error
+        // Manejar cualquier excepción y devolver una respuesta de error
         return response()->json(['message' => 'Error occurred while restoring Business'], 500);
     }
 }
