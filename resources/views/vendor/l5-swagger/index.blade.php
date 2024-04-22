@@ -86,9 +86,8 @@
 
 
 
-
     <script src="{{ l5_swagger_asset($documentation, 'swagger-ui-bundle.js') }}"></script>
-    <script src="{{ asset('swagger/swagger-ui-standalone-preset.js') }}"></script>
+    <script src="{{ l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js') }}"></script>
     <script>
         window.onload = function() {
             // Build a system
