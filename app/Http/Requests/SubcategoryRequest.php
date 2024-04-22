@@ -28,7 +28,7 @@ class SubcategoryRequest extends FormRequest
 
     return [
         'subcategory_name' => 'required|string|min:3|max:255|unique:subcategories,subcategory_name,' . $subcategoryId . ',id',
-        'subcategory_description' => 'required|string|min:3|max:255',
+        'subcategory_description' => 'nullable|string|min:3|max:255',
         'category_id' => 'required|exists:categories,id',
     ];
     }
