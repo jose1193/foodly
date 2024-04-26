@@ -37,17 +37,24 @@ class CreateUserController extends Controller
     DB::beginTransaction();
 
     try {
+        // Validar y extraer datos.
         $data = $request->validated();
         $user = $this->createUser($data);
 
-        $this->handleUserProfilePhoto($request, $user);
+        // Asignar roles y otros datos sin dependencia de la subida de archivos.
         $this->assignUserRole($data, $user);
         $this->handleUserProviderData($request, $data, $user);
 
+        // Crear token de usuario.
         $tokenData = $this->createUserToken($user);
 
+        // Manejar la subida de la foto de perfil solo si todo lo demás ha sido exitoso.
+        $this->handleUserProfilePhoto($request, $user);
+
+        // Confirmar todas las operaciones.
         DB::commit();
 
+        // Devolver respuesta exitosa con datos del usuario y token.
         return response()->json([
             'message' => 'User created successfully',
             'token' => $tokenData['token'],
@@ -57,10 +64,23 @@ class CreateUserController extends Controller
         ], 201);
 
     } catch (\Exception $e) {
+        // Revertir todos los cambios en caso de error.
         DB::rollback();
         return response()->json(['error' => $e->getMessage()], 422);
     }
 }
+
+private function handleUserProfilePhoto(CreateUserRequest $request, User $user)
+{
+    if ($request->hasFile('photo')) {
+        $photoPath = ImageHelper::storeAndResize($request->file('photo'), 'public/profile-photos');
+        // Asegurarse de que la foto solo se asigne si se ha guardado correctamente.
+        if ($photoPath) {
+            $user->update(['profile_photo_path' => $photoPath]);
+        }
+    }
+}
+
 
 private function createUser(array $data): User
 {
@@ -69,13 +89,7 @@ private function createUser(array $data): User
     return User::create($data);
 }
 
-private function handleUserProfilePhoto(CreateUserRequest $request, User $user)
-{
-    if ($request->hasFile('photo')) {
-        $photoPath = ImageHelper::storeAndResize($request->file('photo'), 'public/profile-photos');
-        $user->update(['profile_photo_path' => $photoPath]);
-    }
-}
+
 
 private function assignUserRole(array $data, User $user)
 {
