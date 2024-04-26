@@ -37,66 +37,83 @@ class CreateUserController extends Controller
     DB::beginTransaction();
 
     try {
-        // Validar la solicitud y obtener los datos validados
         $data = $request->validated();
+        $user = $this->createUser($data);
 
-        // Agregar uuid y hashear la contraseña
-        $data['uuid'] = Uuid::uuid4()->toString();
-        $data['password'] = Hash::make($data['password']);
+        $this->handleUserProfilePhoto($request, $user);
+        $this->assignUserRole($data, $user);
+        $this->handleUserProviderData($request, $data, $user);
 
-        // Crear el usuario con los datos validados
-        $user = User::create($data);
-        
-
-        // Verificar si se envió una nueva foto de perfil
-        if ($request->hasFile('photo')) {
-            // Obtener el archivo de la solicitud
-            $image = $request->file('photo');
-            $photoPath = ImageHelper::storeAndResize($image, 'public/profile-photos');
-
-            // Asignar el nombre de la foto al usuario
-            $user->update(['profile_photo_path' => $photoPath]);
-        }
-
-        // Obtener el rol asociado al ID proporcionado
-        $role = Role::find($data['role_id']);
-        if (!$role) {
-            throw new \Exception('Invalid role ID');
-        }
-
-        // Asignar el rol al usuario
-        $user->assignRole($role);
-
-        // Verificar y guardar los datos del proveedor si existen
-        if (isset($data['provider_id'], $data['provider'], $data['provider_avatar'])) {
-            // Crear el proveedor asociado al usuario
-            Provider::create([
-                'uuid' => Uuid::uuid4()->toString(),
-                'provider_id' => $data['provider_id'],
-                'provider' => $data['provider'],
-                'provider_avatar' => $data['provider_avatar'],
-                'user_id' => $user->id,
-            ]);
-
-            // Actualizar el campo email_verified_at si es necesario
-            if (!$user->email_verified_at) {
-                $user->email_verified_at = now();
-                $user->save();
-            }
-        } elseif ($request->has('provider_id') || $request->has('provider') || $request->has('provider_avatar')) {
-            throw new \Exception('Incomplete provider data');
-        }
+        $tokenData = $this->createUserToken($user);
 
         DB::commit();
 
-        // Devolver una respuesta adecuada
-        return response()->json(['message' => 'User created successfully', 'user' => new UserResource($user)], 201);
+        return response()->json([
+            'message' => 'User created successfully',
+            'token' => $tokenData['token'],
+            'token_type' => 'Bearer',
+            'token_created_at' => $tokenData['created_at'],
+            'user' => new UserResource($user)
+        ], 201);
+
     } catch (\Exception $e) {
-        // Manejar cualquier excepción ocurrida durante el proceso
         DB::rollback();
         return response()->json(['error' => $e->getMessage()], 422);
     }
 }
+
+private function createUser(array $data): User
+{
+    $data['uuid'] = Uuid::uuid4()->toString();
+    $data['password'] = Hash::make($data['password']);
+    return User::create($data);
+}
+
+private function handleUserProfilePhoto(CreateUserRequest $request, User $user)
+{
+    if ($request->hasFile('photo')) {
+        $photoPath = ImageHelper::storeAndResize($request->file('photo'), 'public/profile-photos');
+        $user->update(['profile_photo_path' => $photoPath]);
+    }
+}
+
+private function assignUserRole(array $data, User $user)
+{
+    $role = Role::find($data['role_id']);
+    if (!$role) {
+        throw new \Exception('Invalid role ID');
+    }
+    $user->assignRole($role);
+}
+
+private function handleUserProviderData(CreateUserRequest $request, array $data, User $user)
+{
+    if (isset($data['provider_id'], $data['provider'], $data['provider_avatar'])) {
+        Provider::create([
+            'uuid' => Uuid::uuid4()->toString(),
+            'provider_id' => $data['provider_id'],
+            'provider' => $data['provider'],
+            'provider_avatar' => $data['provider_avatar'],
+            'user_id' => $user->id,
+        ]);
+        if (!$user->email_verified_at) {
+            $user->email_verified_at = now();
+            $user->save();
+        }
+    } elseif ($request->has('provider_id') || $request->has('provider') || $request->has('provider_avatar')) {
+        throw new \Exception('Incomplete provider data');
+    }
+}
+
+private function createUserToken(User $user): array
+{
+    $userToken = $user->createToken('API Token User Register')->plainTextToken;
+    $token = PersonalAccessToken::findToken(explode('|', $userToken)[1]);
+    $formattedTokenCreatedAt = $token ? $token->created_at->format('Y-m-d H:i:s') : null;
+
+    return ['token' => explode('|', $userToken)[1], 'created_at' => $formattedTokenCreatedAt];
+}
+
 
 //protected function createUser(array $input): User
 //{
