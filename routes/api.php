@@ -26,6 +26,8 @@ use App\Http\Controllers\PromotionBranchController;
 use App\Http\Controllers\PromotionBranchImageController;
 use App\Http\Controllers\SocialLoginController;
 use App\Http\Controllers\CreateUserController;
+use App\Http\Controllers\PasswordResetUserController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +46,7 @@ Route::post('login', [AuthController::class, 'login']);
 
 Route::post('/register', [CreateUserController::class, 'store']);
 
-Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+//Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
 
 Route::get('/username-available/{username}', [CheckUsernameController::class, 'checkUsernameAvailability']);
 
@@ -55,7 +57,12 @@ Route::get('/categories', [CategoryController::class, 'index']);
 // Route related to User Social Login
 Route::post('/social-login', [SocialLoginController::class, 'handleProviderCallback']);
 
-
+Route::controller(PasswordResetUserController::class)->group(function () {
+    Route::post('/forgot-password', 'store'); 
+    Route::post('/enter-pin', 'verifyResetPassword');
+    Route::post('/reset-password', 'updatePassword');  
+    // Aquí puedes agregar más rutas relacionadas con el restablecimiento de contraseña si lo necesitas
+});
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
    
@@ -65,7 +72,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/users', [AuthController::class, 'getUsers']);
     Route::post('update-password', [AuthController::class, 'updatePassword']);
     
-    Route::post('reset-password', [AuthController::class, 'resetPassword']);
+    //Route::post('reset-password', [AuthController::class, 'resetPassword']);
     Route::post('update-profile', [CreateUserController::class, 'update']);
     Route::post('update-profile-photo', [ProfilePhotoController::class, 'update']);
     

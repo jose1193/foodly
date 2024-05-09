@@ -7,12 +7,12 @@
         "contact": {
             "name": "Foodly",
             "url": "https://www.foodly.world/",
-            "email": "support@example.com"
+            "email": "support@foodly.world"
         }
     },
     "servers": [
         {
-            "url": "https://foodly.up.railway.app/api/"
+            "url": "https://www.qa.apps-369.com/api/"
         }
     ],
     "tags": [
@@ -23,6 +23,10 @@
         {
             "name": "Users",
             "description": "Handles Foodly users authentication information"
+        },
+        {
+            "name": "Reset User Password",
+            "description": "Handles resetting passwords for Foodly platform users."
         },
         {
             "name": "Permissions",
@@ -185,7 +189,7 @@
         },
         "/forgot-password": {
             "post": {
-                "tags": ["Users"],
+                "tags": ["Reset User Password"],
                 "summary": "Forgot password",
                 "requestBody": {
                     "content": {
@@ -201,8 +205,38 @@
                     "200": {
                         "description": "Password reset instructions sent successfully"
                     },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                }
+            }
+        },
+        "/enter-pin": {
+            "post": {
+                "tags": ["Reset User Password"],
+                "summary": "Reset user's password with token and enter PIN",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EnterPinPassword"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "PIN verified. Proceed with password reset"
+                    },
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "429": {
+                        "description": "(Too Many Requests) The client has sent too many requests in a given amount of time"
                     },
                     "500": {
                         "description": "Server error"
@@ -212,7 +246,7 @@
         },
         "/reset-password": {
             "post": {
-                "tags": ["Users"],
+                "tags": ["Reset User Password"],
                 "summary": "Reset user's password with token",
                 "requestBody": {
                     "content": {
@@ -226,10 +260,10 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Password reset successfully"
+                        "description": "Reset password instructions sent successfully"
                     },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
                     },
                     "500": {
                         "description": "Server error"
@@ -4138,10 +4172,26 @@
                     "token": {
                         "type": "string"
                     },
-                    "newPassword": {
+                    "password": {
                         "type": "string"
                     },
-                    "passwordConfirmation": {
+                    "password_confirmation": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EnterPinPassword": {
+                "required": ["pin", "token"],
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "pin": {
                         "type": "string"
                     }
                 }
@@ -4837,6 +4887,9 @@
             },
             "ServerError": {
                 "description": "Server error"
+            },
+            "TooManyRequests": {
+                "description": "(Too Many Requests) The client has sent too many requests in a given amount of time"
             }
         },
         "parameters": {

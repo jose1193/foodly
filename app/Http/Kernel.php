@@ -28,6 +28,8 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
     // ... other route middleware
     'check.permission' => \App\Http\Middleware\CheckPermission::class,
+    'json_throttle' => \App\Http\Middleware\JsonThrottleMiddleware::class,
+
     
 ];
 

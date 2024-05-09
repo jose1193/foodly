@@ -10,8 +10,13 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as Image;
 use App\Models\BusinessCoverImage;
+use App\Models\User;
+
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UpdateBusinessLogoRequest;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeMailBusiness;
+
 
 use App\Helpers\ImageHelper;
 
@@ -98,6 +103,11 @@ class BusinessController extends Controller
 
         // Crear el negocio
         $business = Business::create($data);
+
+        $user = $business->user;
+         // Enviar correo electrónico al usuario
+        Mail::to($user->email)->send(new WelcomeMailBusiness($user, $business));
+
 
         // Devolver una respuesta adecuada
         return $business
