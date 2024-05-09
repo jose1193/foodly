@@ -25,7 +25,7 @@ class UpdatePromotionBranchImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'promotion_branch_image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048', // ajusta según tus necesidades
+            'promotion_branch_image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:5048', // ajusta según tus necesidades
         ];
     }
 

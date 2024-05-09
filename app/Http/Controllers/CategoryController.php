@@ -11,8 +11,9 @@ use Illuminate\Support\Str;
 use Intervention\Image\ImageManagerStatic as Image;
 use Ramsey\Uuid\Uuid;
 use App\Http\Requests\UpdateCategoryImageRequest;
-
+use Illuminate\Support\Facades\Log;
 use App\Helpers\ImageHelper;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 
 class CategoryController extends Controller
@@ -33,32 +34,54 @@ class CategoryController extends Controller
 }
 
 
-  public function store(CategoryRequest $request)
+ public function store(CategoryRequest $request)
 {
-    $validatedData = $request->validated();
+    $validatedData = $this->prepareData($request);
 
     try {
-        // Generar un UUID y obtener el ID del usuario autenticado
-        $validatedData['user_id'] = Auth::id();
-        $validatedData['category_uuid'] = Uuid::uuid4()->toString();
+        $category = $this->createCategory($validatedData);
+        $this->handleCategoryImage($request, $category);
 
-        // Crear la categoría
-        $category = Category::create($validatedData);
-
-        // Guardar la imagen si está presente
-        if ($request->hasFile('category_image_path')) {
-            $imagePath = ImageHelper::storeAndResize($request->file('category_image_path'), 'public/categories_images');
-            $category->category_image_path = $imagePath;
-            $category->save();
-        }
-
-        // Respuesta
-        return $category
-            ? response()->json(['message' => 'Category created successfully', 'categories' => new CategoryResource($category)], 201)
-            : response()->json(['message' => 'Error creating category'], 500);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'An error occurred while creating category: '.$e->getMessage()], 500);
+        return $this->successfulResponse($category);
+    } catch (\Throwable $e) {
+        Log::error('An error occurred while creating category: ' . $e->getMessage());
+        return $this->errorResponse();
     }
+}
+
+private function prepareData($request)
+{
+    return array_merge($request->validated(), [
+        'user_id' => Auth::id(),
+        'category_uuid' => Uuid::uuid4()->toString()
+    ]);
+}
+
+private function createCategory($data)
+{
+    return Category::create($data);
+}
+
+private function handleCategoryImage($request, $category)
+{
+    if ($request->hasFile('category_image_path')) {
+        $imagePath = ImageHelper::storeAndResize($request->file('category_image_path'), 'public/categories_images');
+        $category->category_image_path = $imagePath;
+        $category->save();
+    }
+}
+
+private function successfulResponse($category)
+{
+    return response()->json([
+        'message' => 'Category created successfully',
+        'categories' => new CategoryResource($category)
+    ], 200);
+}
+
+private function errorResponse()
+{
+    return response()->json(['error' => 'An error occurred while creating category'], 500);
 }
 
 
@@ -93,10 +116,11 @@ public function updateImage(UpdateCategoryImageRequest $request, $uuid)
         return response()->json( new CategoryResource($category), 200);
        
     } catch (\Exception $e) {
-        // Manejar el error
-        return response()->json(['error' => 'Error updating category image'], 500);
+    // Manejar el error y registrar el mensaje de error si es necesario
+    Log::error('Error updating category image: ' . $e->getMessage());
+    return response()->json(['error' => 'Error updating category image'], 500);
     }
-}
+    }
 
 
 
@@ -118,8 +142,6 @@ public function show($uuid)
 
 
 
-
-
  public function update(CategoryRequest $request, $uuid)
 {
     try {
@@ -134,33 +156,39 @@ public function show($uuid)
     } catch (ModelNotFoundException $e) {
         return response()->json(['message' => 'Category not found'], 404);
     } catch (\Exception $e) {
-        return response()->json(['message' => 'Error updating category'], 500);
+    // Manejar cualquier excepción y devolver una respuesta de error
+    Log::error('Error updating category: ' . $e->getMessage());
+    return response()->json(['message' => 'Error updating category'], 500);
     }
-}
+    }
 
 
 
 public function destroy($uuid)
 {
-    // Encontrar la categoría por su UUID
-     $category = Category::where('category_uuid', $uuid)->first();
+    try {
+        // Encontrar la categoría por su UUID o lanzar una excepción si no se encuentra
+        $category = Category::where('category_uuid', $uuid)->firstOrFail();
 
-    // Verificar si se encontró la categoría
-    if (!$category) {
+        // Eliminar las imágenes asociadas si existen
+        if ($category->category_image_path) {
+            $pathWithoutAppPublic = str_replace('storage/app/public/', '', $category->category_image_path);
+            Storage::disk('public')->delete($pathWithoutAppPublic);
+        }
+
+        // Eliminar la categoría
+        $category->delete();
+
+        // Devolver una respuesta JSON con un mensaje de éxito
+        return response()->json(['message' => 'Category successfully removed'], 200);
+    } catch (ModelNotFoundException $e) {
+        // Manejar el caso donde la categoría no fue encontrada
         return response()->json(['message' => 'Category not found'], 404);
+    } catch (\Exception $e) {
+        // Manejar cualquier otro error y registrar el mensaje de error
+        Log::error('An error occurred while removing the category: ' . $e->getMessage());
+        return response()->json(['error' => 'An error occurred while removing the category'], 500);
     }
-
-    // Eliminar las imágenes asociadas si existen
-    if ($category->category_image_path) {
-        $pathWithoutAppPublic = str_replace('storage/app/public/', '', $category->category_image_path);
-        Storage::disk('public')->delete($pathWithoutAppPublic);
-    }
-
-    // Eliminar la categoría
-    $category->delete();
-
-    // Devolver una respuesta JSON con un mensaje de éxito
-    return response()->json(['message' => 'Category successfully removed'], 200);
 }
 
 

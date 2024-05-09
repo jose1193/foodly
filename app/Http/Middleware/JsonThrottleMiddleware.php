@@ -36,7 +36,7 @@ class JsonThrottleMiddleware
         // Envía una notificación por correo electrónico al usuario
         if ($email && $user) {
             // Envía la notificación
-            Mail::to($email)->send(new NotifySuspiciousResetPasswordActivity($user));
+            Mail::to($email)->queue(new NotifySuspiciousResetPasswordActivity($user));
             // Eliminar la entrada de la tabla password_reset_users
             PasswordResetUser::where('email', $email)->delete();
         }

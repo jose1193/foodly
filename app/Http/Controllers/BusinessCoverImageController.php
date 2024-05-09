@@ -13,6 +13,9 @@ use Ramsey\Uuid\Uuid;
 use App\Http\Requests\UpdateBusinessCoverImageRequest;
 
 use App\Helpers\ImageHelper;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 
 class BusinessCoverImageController extends Controller
 {
@@ -53,10 +56,11 @@ class BusinessCoverImageController extends Controller
         // Devolver todas las imágenes de portada agrupadas por nombre de negocio como respuesta JSON
         return response()->json(['grouped_business_cover_images' => $groupedCoverImages], 200);
     } catch (\Exception $e) {
-        // Devolver un mensaje de error detallado en caso de excepción
-        return response()->json(['message' => 'Error fetching business cover images: ' . $e->getMessage()], 500);
+    // Devolver un mensaje de error detallado en caso de excepción
+    Log::error('Error fetching business cover images: ' . $e->getMessage());
+    return response()->json(['message' => 'Error fetching business cover images: '], 500);
     }
-}
+    }
 
 
 
@@ -90,6 +94,7 @@ class BusinessCoverImageController extends Controller
         ], 201);
     } catch (\Exception $e) {
         // En caso de error, devuelve una respuesta de error
+         Log::error('Error storing business cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error storing business cover images'], 500);
     }
 }
@@ -120,6 +125,7 @@ public function updateImage(UpdateBusinessCoverImageRequest $request, $uuid)
             'business_cover_images' => new BusinessCoverImageResource($businessCoverImage)
         ]);
     } catch (\Exception $e) {
+        Log::error('Error fetching business cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error updating business cover image'], 500);
     }
 }
@@ -162,6 +168,7 @@ private function deleteOldImage($oldImagePath)
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
         return response()->json(['message' => 'Business cover images not found'], 404);
     } catch (\Exception $e) {
+        Log::error('Error retrieving business cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error retrieving business cover images'], 500);
     }
 }
@@ -182,26 +189,30 @@ private function deleteOldImage($oldImagePath)
 
 
     
-    public function destroy($uuid)
+   public function destroy($uuid)
 {
-    // Intentar encontrar la imagen de portada del negocio por su ID
-    $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->first();
+    try {
+        // Intentar encontrar la imagen de portada del negocio por su ID
+        $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->firstOrFail();
 
-    // Verificar si la imagen de portada del negocio fue encontrada
-    if (!$businessCoverImage) {
+        // Eliminar la imagen del almacenamiento
+        $pathWithoutAppPublic = str_replace('storage/app/public/', '', $businessCoverImage->business_image_path);
+        if (Storage::disk('public')->exists($pathWithoutAppPublic)) {
+            Storage::disk('public')->delete($pathWithoutAppPublic);
+        }
+
+        // Eliminar el modelo de la base de datos
+        $businessCoverImage->delete();
+
+        return response()->json(['message' => 'Business cover image deleted successfully']);
+    } catch (ModelNotFoundException $e) {
+        // Manejar el caso donde la imagen de portada del negocio no fue encontrada
         return response()->json(['message' => 'Business cover image not found'], 404);
+    } catch (\Exception $e) {
+        // Manejar cualquier otro error y devolver una respuesta de error
+        Log::error('Error retrieving business cover images: ' . $e->getMessage());
+        return response()->json(['message' => 'Error deleting business cover image '], 500);
     }
-
-    // Eliminar la imagen del almacenamiento
-    $pathWithoutAppPublic = str_replace('storage/app/public/', '', $businessCoverImage->business_image_path);
-    if (Storage::disk('public')->exists($pathWithoutAppPublic)) {
-        Storage::disk('public')->delete($pathWithoutAppPublic);
-    }
-
-    // Eliminar el modelo de la base de datos
-    $businessCoverImage->delete();
-
-    return response()->json(['message' => 'Business cover image deleted successfully']);
 }
 
 

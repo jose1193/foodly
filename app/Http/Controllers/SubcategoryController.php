@@ -24,16 +24,20 @@ class SubcategoryController extends Controller
     return response()->json(['subcategories' => SubcategoryResource::collection($subcategories)]);
 }
 
-
-    public function store(SubcategoryRequest $request)
+public function store(SubcategoryRequest $request)
 {
-    $validatedData = $request->validated();
-    $validatedData['subcategory_uuid'] = Uuid::uuid4()->toString();
-    $subcategory = Subcategory::create($validatedData);
+    try {
+        $validatedData = $request->validated();
+        $validatedData['subcategory_uuid'] = Uuid::uuid4()->toString();
+        
+        $subcategory = Subcategory::create($validatedData);
 
-    return $subcategory
-        ? response()->json(['subcategories' => new SubcategoryResource($subcategory)], 200)
-        : response()->json(['message' => 'Error creating subcategory'], 500);
+        return response()->json(new SubcategoryResource($subcategory), 201);
+    } catch (\Exception $e) {
+        Log::error('Error creating subcategory: ' . $e->getMessage());
+        
+        return response()->json(['message' => 'Error creating subcategory'], 500);
+    }
 }
 
 

@@ -62,7 +62,7 @@ public function store(ForgotPasswordUserRequest $request)
         ]);
 
         // Enviar correo electrónico al usuario
-        Mail::to($user->email)->send(new ResetPasswordMail($pin));
+       Mail::to($user->email)->queue(new ResetPasswordMail($pin));
 
         DB::commit();
 
@@ -78,8 +78,10 @@ public function store(ForgotPasswordUserRequest $request)
         DB::rollBack();
         return response()->json(['message' => 'User not found'], 404);
     } catch (\Exception $e) {
+        // Manejar cualquier otro error y registrar el mensaje de error
         DB::rollBack();
-        return response()->json(['message' => 'An error occurred during the process'], 500);
+        Log::error('An error occurred during the forgot password process: ' . $e->getMessage());
+        return response()->json(['message' => 'An error occurred during the forgot password process'], 500);
     }
 }
 
@@ -125,7 +127,9 @@ public function verifyResetPassword(PasswordResetUserRequest $request)
             'user' => new PasswordResetUserResource($passwordReset)
         ]);
     } catch (\Exception $e) {
+        // Manejar cualquier otro error y registrar el mensaje de error
         DB::rollBack();
+        Log::error('An error occurred while verifying the PIN: ' . $e->getMessage());
         return response()->json(['message' => 'An error occurred while verifying the PIN.', 'error' => $e->getMessage()], 500);
     }
 }
@@ -149,13 +153,15 @@ public function updatePassword(UpdatePasswordResetRequest $request)
            
 
             // Envía el correo electrónico de confirmación de cambio de contraseña
-            Mail::to($user->email)->send(new PasswordResetSuccess($user));
+            Mail::to($user->email)->queue(new PasswordResetSuccess($user));
         });
 
         return response()->json(['message' => 'Password updated successfully'], 200);
-    } catch (\Throwable $e) {
-        return response()->json(['message' => 'Failed to update password: ' . $e->getMessage()], 500);
-    }
+    }  catch (\Throwable $e) {
+    // Manejar cualquier tipo de excepción y devolver una respuesta de error
+    Log::error('Failed to update password: ' . $e->getMessage());
+    return response()->json(['message' => 'Failed to update password: ' . $e->getMessage()], 500);
+}
 }
 
 

@@ -24,7 +24,7 @@ class UpdateBranchLogoRequest extends FormRequest
     public function rules(): array
     {
          return [
-            'branch_logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048', // ajusta según tus necesidades
+            'branch_logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:5048', // ajusta según tus necesidades
         ];
     }
 

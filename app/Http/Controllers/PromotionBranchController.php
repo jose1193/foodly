@@ -12,7 +12,7 @@ use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 
 class PromotionBranchController extends Controller
 {
@@ -45,10 +45,11 @@ class PromotionBranchController extends Controller
         // Devolver todas las promociones como respuesta JSON
         return response()->json(['branch_promotions' => $promotionsBranches], 200);
     } catch (\Exception $e) {
-    return response()->json(['message' => 'Error fetching promotions: ' . $e->getMessage()], 500);
-}
+    Log::error('Error fetching promotions branch: ' . $e->getMessage());
+    return response()->json(['message' => 'Error fetching promotions branch: '], 500);
+    }
 
-}
+    }
 
 
 
@@ -89,10 +90,11 @@ class PromotionBranchController extends Controller
 
         DB::commit();
 
-        return response()->json(['message' => 'Promotion branch created successfully', 'branch_promotions' => new PromotionBranchResource($promotionBranch)], 201);
+        return response()->json(new PromotionBranchResource($promotionBranch), 201);
     } catch (\Exception $e) {
         DB::rollBack();
-         return response()->json(['message' => 'Error fetching promotions: ' . $e->getMessage()], 500);
+        Log::error('Error storing promotions branch: ' . $e->getMessage());
+        return response()->json(['message' => 'Error storing promotion '], 500);
     }
 }
 
@@ -115,7 +117,8 @@ class PromotionBranchController extends Controller
         return response()->json(['message' => 'Promotion not found'], 404);
     } catch (\Exception $e) {
         // Manejar cualquier otra excepción y devolver un mensaje de error genérico
-        return response()->json(['message' => 'Error fetching branch promotion  ' . $e->getMessage()], 500);
+        Log::error('Error fetching branch promotion: ' . $e->getMessage());
+        return response()->json(['message' => 'Error fetching branch promotion  '], 500);
     }
 }
 
@@ -127,28 +130,38 @@ class PromotionBranchController extends Controller
  public function update(PromotionBranchRequest $request, $uuid)
 {
     try {
-        // Obtener el ID del usuario autenticado
         $userId = Auth::id();
 
-        // Buscar la promoción de sucursal por el UUID y asegurarse de que pertenezca al usuario autenticado
+        // Asegurarse de que la promoción pertenece al usuario autenticado
         $promotionBranch = PromotionBranch::where('promotion_branch_uuid', $uuid)
             ->whereHas('branches.business', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })
-            ->first();
+            ->firstOrFail();
 
-        if (!$promotionBranch) {
-            return response()->json(['message' => 'Branch Promotion Not Found or Not Belonging to Authenticated User'], 404);
-        }
+        // Iniciar transacción
+        DB::beginTransaction();
 
-        // Actualizar los atributos de la promoción de sucursal según la solicitud
-        $promotionBranch->update($request->validated());
+        $validatedData = $request->validated();
+        $promotionBranch->update($validatedData);
+
+        // Confirmar la transacción
+        DB::commit();
 
         return response()->json(new PromotionBranchResource($promotionBranch), 200);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Si no se encuentra la promoción, proporcionar una respuesta adecuada
+        Log::warning('PromotionBranch not found for UUID: ' . $uuid . ' by user ID: ' . $userId);
+        return response()->json(['message' => 'Promotion branch not found.'], 404);
     } catch (\Exception $e) {
-        return response()->json(['message' => 'Error updating branch promotion: ' . $e->getMessage()], 500);
+        // En caso de error, revertir la transacción y loguear el error
+        DB::rollback();
+        Log::error('Error updating branch promotion: ' . $e->getMessage());
+        return response()->json(['message' => 'An error occurred while updating branch promotion. Please try again later.'], 500);
     }
 }
+
+
 
 
 
@@ -168,6 +181,7 @@ class PromotionBranchController extends Controller
     } catch (ModelNotFoundException $e) {
         return response()->json(['message' => 'Promotion branch not found'], 404);
     } catch (\Exception $e) {
+        Log::error('Error deleting promotion branch: ' . $e->getMessage());
         return response()->json(['message' => 'Error deleting promotion branch'], 500);
     }
 }
@@ -195,12 +209,10 @@ public function restore($uuid)
         $promotionBranch->restore();
 
         // Devolver una respuesta JSON con el mensaje y el recurso de la promoción restaurada
-        return response()->json([
-            'message' => 'Promotion Branch restored successfully',
-            'branch_promotion' => new PromotionBranchResource($promotionBranch)
-        ], 200);
+        return response()->json(new PromotionBranchResource($promotionBranch), 200);
     } catch (\Exception $e) {
         // Manejar cualquier excepción y devolver una respuesta de error
+         Log::error('Error occurred while restoring Promotion Branch: ' . $e->getMessage());
         return response()->json(['message' => 'Error occurred while restoring Promotion Branch'], 500);
     }
 }

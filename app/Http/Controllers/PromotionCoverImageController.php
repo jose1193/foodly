@@ -10,7 +10,7 @@ use App\Http\Resources\PromotionImageResource;
 use Ramsey\Uuid\Uuid;
 use App\Http\Requests\UpdatePromotionImageRequest;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Log;
 
 use App\Helpers\ImageHelper;
 
@@ -52,6 +52,7 @@ class PromotionCoverImageController extends Controller
         // Devolver todas las imágenes de promoción agrupadas por título de promoción como respuesta JSON
         return response()->json(['grouped_promotion_images' => $groupedPromotionImages], 200);
     } catch (\Exception $e) {
+        Log::error('An error occurred while fetching promotion images: ' . $e->getMessage());
         return response()->json(['message' => 'Error fetching promotion images'], 500);
     }
 }
@@ -92,14 +93,13 @@ class PromotionCoverImageController extends Controller
         DB::commit();
 
         return response()->json([
-            'success' => true,
-            'message' => 'Promotion images stored successfully',
+          
             'promotion_images' => $promotionImages,
         ]);
     } catch (\Exception $e) {
         // Revertir la transacción en caso de error
         DB::rollBack();
-        
+        Log::error('An error occurred while storing promotion images: ' . $e->getMessage());
         return response()->json(['error' => 'Error storing promotion images'], 500);
     }
 }
@@ -127,6 +127,7 @@ class PromotionCoverImageController extends Controller
         return response()->json(['promotion_image' => $promotionImageResource], 200);
     } catch (\Exception $e) {
         // Manejar errores de manera más detallada
+        Log::error('An error occurred while retrieving promotion image: ' . $e->getMessage());
         return response()->json(['error' => 'Error retrieving promotion image'], 500);
     }
 }
@@ -156,11 +157,10 @@ public function updateImage(UpdatePromotionImageRequest $request, $promotion_ima
         }
 
         return response()->json([
-            'success' => true,
-            'message' => 'Promotion image updated successfully',
             'promotion_image' => new PromotionImageResource($promotionImage)
         ]);
     } catch (\Exception $e) {
+        Log::error('An error occurred while updating promotion image: ' . $e->getMessage());
         return response()->json(['error' => 'Error updating promotion image'], 500);
     }
 }
@@ -208,6 +208,7 @@ private function deleteOldImage($oldImagePath)
 
         return response()->json(['message' => 'Promotion image deleted successfully']);
     } catch (\Exception $e) {
+        Log::error('An error occurred while deleting promotion image: ' . $e->getMessage());
         return response()->json(['error' => 'Error occurred while deleting promotion image'], 500);
     }
 }

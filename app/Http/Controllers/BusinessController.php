@@ -16,10 +16,12 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\UpdateBusinessLogoRequest;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\WelcomeMailBusiness;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 
 use App\Helpers\ImageHelper;
 
+use Illuminate\Support\Facades\DB;
 
 class BusinessController extends Controller
 {
@@ -48,13 +50,15 @@ class BusinessController extends Controller
 
         // Devolver los negocios encontrados como respuesta JSON, incluidos los eliminados
         return response()->json(['businesses' => BusinessResource::collection($businesses)], 200);
-    } catch (\Illuminate\Database\QueryException $e) {
-        // Manejar errores de consulta SQL
-        return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
-    } catch (\Exception $e) {
-        // Manejar cualquier otra excepci贸n que ocurra durante el proceso
-        return response()->json(['message' => 'Error retrieving businesses'], 500);
-    }
+    } catch (QueryException $e) {
+    // Manejar errores de consulta SQL y registrar el error
+    Log::error('Database error: ' . $e->getMessage());
+    return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
+} catch (\Exception $e) {
+    // Manejar cualquier otra excepción que ocurra durante el proceso y registrar el error
+    Log::error('Error retrieving businesses: ' . $e->getMessage());
+    return response()->json(['message' => 'Error retrieving businesses'], 500);
+}
 }
 
 public function show($uuid)
@@ -64,53 +68,54 @@ public function show($uuid)
        $business = Business::withTrashed()->where('business_uuid', $uuid)->firstOrFail();
         
          return response()->json( new BusinessResource($business), 200);
-    } catch (\Illuminate\Database\QueryException $e) {
-        // Manejar errores de consulta SQL
-        return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
-    } catch (\Exception $e) {
-        // Manejar cualquier otra excepci贸n que ocurra durante el proceso
-        return response()->json(['message' => 'Error retrieving business'], 500);
-    }
+    } catch (QueryException $e) {
+    // Manejar errores de consulta SQL y registrar el error
+    Log::error('Database error: ' . $e->getMessage());
+    return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
+} catch (\Exception $e) {
+    // Manejar cualquier otra excepción que ocurra durante el proceso y registrar el error
+    Log::error('Error retrieving businesses: ' . $e->getMessage());
+    return response()->json(['message' => 'Error retrieving business'], 500);
+}
 }
 
-
-
-   public function store(BusinessRequest $request)
+public function store(BusinessRequest $request)
 {
-    // Validar la solicitud y obtener los datos validados
     $data = $request->validated();
 
     try {
-        // Generar un UUID
-        $data['business_uuid'] = Uuid::uuid4()->toString();
+        return DB::transaction(function () use ($request, $data) {
+            // Generar un UUID
+            $data['business_uuid'] = Uuid::uuid4()->toString();
 
-        // Obtener el ID del usuario actualmente autenticado
-        $data['user_id'] = Auth::id();
+            // Obtener el ID del usuario actualmente autenticado
+            $data['user_id'] = Auth::id();
 
-        // Guardar la foto del negocio si existe
-        if ($request->hasFile('business_logo')) {
-            $image = $request->file('business_logo');
-            $photoPath = ImageHelper::storeAndResize($image, 'public/business_logos');
-            $data['business_logo'] = $photoPath;
-        }
+            // Guardar la foto del negocio si existe
+            if ($request->hasFile('business_logo')) {
+                $image = $request->file('business_logo');
+                $photoPath = ImageHelper::storeAndResize($image, 'public/business_logos');
+                $data['business_logo'] = $photoPath;
+            }
 
-        // Crear el negocio
-        $business = Business::create($data);
+            // Crear el negocio
+            $business = Business::create($data);
 
-        $user = $business->user;
-         // Enviar correo electrónico al usuario
-        Mail::to($user->email)->send(new WelcomeMailBusiness($user, $business));
+            // Enviar correo electrónico de manera asincrónica
+            Mail::to($business->user->email)->queue(new WelcomeMailBusiness($business->user, $business));
 
-
-        // Devolver una respuesta adecuada
-        return $business
-            ? response()->json(['business' => new BusinessResource($business)], 201)
-            : response()->json(['message' => 'Error creating business'], 500);
-    } catch (\Exception $e) {
-        // Manejar errores inesperados
-        return response()->json(['message' => 'An error occurred: '.$e->getMessage()], 500);
+            // Devolver una respuesta adecuada
+            return response()->json(['business' => new BusinessResource($business)], 201);
+        });
+    } catch (\Exception $exception) {
+        // Manejo específico de excepciones fuera de la transacción
+        Log::error('Error storing business: ' . $exception->getMessage());
+        return response()->json(['message' => 'An error occurred: ' . $exception->getMessage()], 500);
     }
 }
+
+
+
 
 
 public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
@@ -138,10 +143,11 @@ public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
         // Devolver el recurso actualizado
         return response()->json( new BusinessResource($business), 200);
     } catch (\Exception $e) {
-        // Manejar el error
-        return response()->json(['error' => $e->getMessage()], 500);
+    // Manejar el error y registrar el error
+    Log::error('Error updating business logo: ' . $e->getMessage());
+    return response()->json(['error' => 'An error occurred: '], 500);
     }
-}
+    }
 
 
 
@@ -155,10 +161,6 @@ private function deleteImage($imagePath)
 
 
 
-
-
-
-   
 public function update(BusinessRequest $request, $uuid)
 {
     try {
@@ -169,12 +171,18 @@ public function update(BusinessRequest $request, $uuid)
         $business->update($request->validated());
 
         // Devolver una respuesta JSON con el negocio actualizado
-        return response()->json(['message' => 'Business updated successfully', 'business' => new BusinessResource($business)], 200);
+        return response()->json(new BusinessResource($business), 200);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Si no se encuentra el negocio
+        Log::warning("Business with UUID {$uuid} not found for user ID " . auth()->id());
+        return response()->json(['message' => 'Business not found'], 404);
     } catch (\Exception $e) {
-        // Manejar cualquier excepción que ocurra durante el proceso
-        return response()->json(['message' => 'Error updating business'], 500);
+        // Manejar otros errores y registrar el error
+        Log::error("Error updating business with UUID {$uuid}: " . $e->getMessage());
+        return response()->json(['message' => 'An error occurred'], 500);
     }
 }
+
 
 
 
@@ -193,8 +201,9 @@ public function destroy($uuid)
 
         return response()->json(['message' => 'Business deleted successfully'], 200);
     } catch (\Exception $e) {
-        // Manejar cualquier excepción que ocurra durante el proceso
-        return response()->json(['message' => 'Error deleting business'], 500);
+    // Manejar el error y registrar el error
+        Log::error('Error deleting business: ' . $e->getMessage());
+    return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
     }
 }
 
@@ -224,9 +233,10 @@ public function restore($uuid)
             'business' => new BusinessResource($business)
         ], 200);
     } catch (\Exception $e) {
-        // Manejar cualquier excepci贸n y devolver una respuesta de error
-        return response()->json(['message' => 'Error occurred while restoring Business'], 500);
-    }
+    // Manejar el error y registrar el error
+    Log::error('Error restoring business: ' . $e->getMessage());
+    return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+}
 }
 
 

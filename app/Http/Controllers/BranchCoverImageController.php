@@ -15,7 +15,7 @@ use App\Http\Requests\UpdateBusinessBranchCoverImageRequest;
 use Illuminate\Support\Facades\Auth;
 
 use App\Helpers\ImageHelper;
-
+use Illuminate\Support\Facades\Log;
 
 class BranchCoverImageController extends Controller
 {
@@ -56,10 +56,11 @@ public function index()
         // Devolver una respuesta JSON con las imágenes de portada agrupadas por sucursal
         return response()->json(['grouped_branch_cover_images' => $groupedCoverImages]);
     } catch (\Exception $e) {
-        // Manejar cualquier excepción que ocurra durante el proceso
-        return response()->json(['message' => 'An error occurred: '.$e->getMessage()], 500);
+    // Manejar cualquier excepción que ocurra durante el proceso y registrar el mensaje de error
+    Log::error('An error occurred while grouping branch cover images: ' . $e->getMessage());
+    return response()->json(['message' => 'An error occurred: '], 500);
     }
-}
+    }
 
 
 
@@ -111,6 +112,7 @@ public function store(BusinessBranchCoverImageRequest $request)
             'branch_cover_images' => $branchImages,
         ]);
     } catch (\Exception $e) {
+        Log::error('An error occurred while storing branch cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error storing branch cover images'], 500);
     }
 }
@@ -140,6 +142,7 @@ public function updateImage(UpdateBusinessBranchCoverImageRequest $request, $uui
             'branch_cover_images' => new BusinessBranchCoverImageResource($branchCoverImage)
         ]);
     } catch (\Exception $e) {
+         Log::error('An error occurred while updating branch cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error updating business cover image'], 500);
     }
 }
@@ -168,7 +171,8 @@ private function deleteOldImage($oldImagePath)
         return response()->json(['branch_image' => $branchCoverImage]);
     } catch (\Exception $e) {
         // Manejar la excepción y devolver una respuesta de error
-        return response()->json(['message' => 'Failed to retrieve branch cover image', 'error' => $e->getMessage()], 500);
+         Log::error('Failed to retrieve branch cover image: ' . $e->getMessage());
+        return response()->json(['message' => 'Failed to retrieve branch cover image'], 500);
     }
 }
 

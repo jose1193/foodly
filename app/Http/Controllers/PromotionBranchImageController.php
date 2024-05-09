@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 use App\Helpers\ImageHelper;
+use Illuminate\Support\Facades\Log;
 
 class PromotionBranchImageController extends Controller
 {
@@ -66,7 +67,8 @@ class PromotionBranchImageController extends Controller
         return response()->json(['grouped_promotion_images' => $groupedPromotionImages], 200);
     } catch (\Exception $e) {
         // Devolver un mensaje de error detallado en caso de excepción
-        return response()->json(['message' => 'Error fetching promotion images: ' . $e->getMessage()], 500);
+        Log::error('Error fetching promotion images: ' . $e->getMessage());
+        return response()->json(['message' => 'Error fetching promotion images: '], 500);
     }
 }
 
@@ -120,7 +122,8 @@ class PromotionBranchImageController extends Controller
         DB::rollBack();
 
         // Manejar errores de manera más detallada
-        return response()->json(['error' => $e->getMessage()], 500);
+         Log::error('Error storing branch promotion images: ' . $e->getMessage());
+        return response()->json(['Error storing branch promotion images'], 500);
     }
 }
 
@@ -146,7 +149,8 @@ class PromotionBranchImageController extends Controller
         return response()->json(['promotion_branch_image' => $promotionBranchImageResource], 200);
     } catch (\Exception $e) {
         // Manejar errores de manera más detallada
-        return response()->json(['error' => $e->getMessage()], 500);
+        Log::error('Error showing branch promotion image: ' . $e->getMessage());
+        return response()->json(['Error showing branch promotion image'], 500);
     }
 }
 
@@ -174,6 +178,7 @@ public function updateImage(UpdatePromotionBranchImageRequest $request, $uuid)
             'promotion_branch_image' => new PromotionBranchImageResource($promotionImage)
         ]);
     } catch (\Exception $e) {
+        Log::error('An error occurred while updating promotion image: ' . $e->getMessage());
         return response()->json(['error' => 'Error updating promotion image'], 500);
     }
 }
@@ -224,7 +229,8 @@ private function deleteOldImage($oldImagePath)
 
         return response()->json(['message' => 'Promotion branch image deleted successfully']);
     } catch (\Exception $e) {
-        return response()->json(['error' => 'Error occurred while deleting promotion branch image'], 500);
+        Log::error('An error occurred while deleting branch promotion image: ' . $e->getMessage());
+        return response()->json(['error' => 'Error occurred while deleting branch promotion image'], 500);
     }
 }
 }
