@@ -47,18 +47,20 @@ class PromotionController extends Controller
     }
 }
 
-
 public function store(PromotionRequest $request)
 {
     try {
-        // Iniciar una transacción
+        // Iniciar una transacción de base de datos para garantizar la integridad de los datos
         DB::beginTransaction();
 
         // Obtener el ID del usuario autenticado
         $userId = Auth::id();
 
+        // Validar el request y obtener los datos validados
+        $validatedData = $request->validated();
+
         // Obtener el business_id proporcionado en la solicitud
-        $businessId = $request->validated()['business_id'];
+        $businessId = $validatedData['business_id'];
 
         // Verificar si el business_id pertenece al usuario autenticado
         $isUserBusiness = Business::where('user_id', $userId)->where('id', $businessId)->exists();
@@ -67,7 +69,6 @@ public function store(PromotionRequest $request)
         }
 
         // Generar un UUID para la promoción
-        $validatedData = $request->validated();
         $validatedData['promotion_uuid'] = Uuid::uuid4()->toString();
 
         // Crear la promoción dentro de la transacción
@@ -77,12 +78,13 @@ public function store(PromotionRequest $request)
         DB::commit();
 
         return response()->json(['message' => 'Promotion created successfully', 'promotion' => new PromotionResource($promotion)], 201);
-    } catch (\Exception $e) {
+    } catch (\Illuminate\Database\QueryException $e) {
         // Revertir la transacción en caso de error
         DB::rollBack();
-        return response()->json(['message' => 'Error creating promotion'], 500);
+        return response()->json(['message' => 'Error creating promotion', 'error' => $e->getMessage()], 500);
     }
 }
+
 
 public function update(PromotionRequest $request, $uuid)
 {
@@ -109,7 +111,7 @@ public function update(PromotionRequest $request, $uuid)
         $promotion->update($validatedData);
 
         // Devolver una respuesta JSON con la promoción actualizada
-        return response()->json(['message' => 'Promotion updated successfully', 'promotion' => new PromotionResource($promotion)], 200);
+        return response()->json(new PromotionResource($promotion), 200);
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
         // La promoción no fue encontrada
         return response()->json(['message' => 'Promotion not found'], 404);
@@ -127,7 +129,7 @@ public function show($uuid)
     try {
         $promotion = Promotion::withTrashed()->where('promotion_uuid', $uuid)->firstOrFail();
 
-        return response()->json(['promotion' => new PromotionResource($promotion)], 200);
+        return response()->json(new PromotionResource($promotion), 200);
     } catch (ModelNotFoundException $e) {
         return response()->json(['message' => 'Promotion not found'], 404);
     } catch (\Exception $e) {

@@ -25,7 +25,7 @@ class PromotionBranch extends Model
 
     public function branches()
     {
-        return $this->belongsTo(BusinessBranch::class);
+         return $this->belongsTo(BusinessBranch::class, 'branch_id');
     }
 
     public function promotionBranchesImages()

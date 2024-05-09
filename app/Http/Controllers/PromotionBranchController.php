@@ -33,32 +33,22 @@ class PromotionBranchController extends Controller
         // Obtener el ID del usuario autenticado
         $userId = Auth::id();
 
-        // Obtener todos los negocios asociados al usuario autenticado junto con las sucursales y promociones
-        $businesses = User::findOrFail($userId)->with('businessBranch.promotionsbranches')->get();
-
-        // Inicializar una colección vacía para almacenar todas las promociones de las sucursales
-        $allPromotionsBranches = collect();
-
-        // Iterar sobre cada negocio
-        foreach ($businesses as $business) {
-            // Obtener todas las sucursales del negocio
-            $branches = $business->businessBranch;
-
-            // Iterar sobre cada sucursal y obtener las promociones asociadas
-            foreach ($branches as $branch) {
-                // Obtener las promociones asociadas a esta sucursal y concatenarlas a la colección de promociones
-                $allPromotionsBranches = $allPromotionsBranches->concat($branch->promotionsbranches);
-            }
-        }
+        // Obtener todas las promociones de las sucursales asociadas a los negocios del usuario autenticado
+        $promotionsBranches = Business::where('user_id', $userId)
+            ->with('businessBranch.promotionsbranches')
+            ->get()
+            ->pluck('businessBranch')
+            ->flatten()
+            ->pluck('promotionsbranches')
+            ->flatten();
 
         // Devolver todas las promociones como respuesta JSON
-        return response()->json(['branch_promotions' => $allPromotionsBranches->flatten()], 200);
+        return response()->json(['branch_promotions' => $promotionsBranches], 200);
     } catch (\Exception $e) {
-        // Manejar cualquier excepción y devolver un mensaje de error
-        return response()->json(['message' => 'Error fetching promotions'], 500);
-    }
+    return response()->json(['message' => 'Error fetching promotions: ' . $e->getMessage()], 500);
 }
 
+}
 
 
 
@@ -102,7 +92,7 @@ class PromotionBranchController extends Controller
         return response()->json(['message' => 'Promotion branch created successfully', 'branch_promotions' => new PromotionBranchResource($promotionBranch)], 201);
     } catch (\Exception $e) {
         DB::rollBack();
-        return response()->json(['message' => 'Error creating promotion branch'], 500);
+         return response()->json(['message' => 'Error fetching promotions: ' . $e->getMessage()], 500);
     }
 }
 
@@ -119,13 +109,13 @@ class PromotionBranchController extends Controller
         $promotionBranch = PromotionBranch::withTrashed()->where('promotion_branch_uuid', $uuid)->firstOrFail();
 
         // Devolver la promoción de sucursal como respuesta JSON
-        return response()->json(['promotion_branch' => new PromotionBranchResource($promotionBranch)], 200);
+        return response()->json(new PromotionBranchResource($promotionBranch), 200);
     } catch (ModelNotFoundException $e) {
         // Manejar el caso en que la promoción no se encuentre y devolver un mensaje de error
         return response()->json(['message' => 'Promotion not found'], 404);
     } catch (\Exception $e) {
         // Manejar cualquier otra excepción y devolver un mensaje de error genérico
-        return response()->json(['message' => 'Error fetching promotion'], 500);
+        return response()->json(['message' => 'Error fetching branch promotion  ' . $e->getMessage()], 500);
     }
 }
 
@@ -134,7 +124,7 @@ class PromotionBranchController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(PromotionBranchRequest $request, $uuid)
+ public function update(PromotionBranchRequest $request, $uuid)
 {
     try {
         // Obtener el ID del usuario autenticado
@@ -142,27 +132,26 @@ class PromotionBranchController extends Controller
 
         // Buscar la promoción de sucursal por el UUID y asegurarse de que pertenezca al usuario autenticado
         $promotionBranch = PromotionBranch::where('promotion_branch_uuid', $uuid)
-            ->whereHas('branches', function ($query) use ($userId) {
+            ->whereHas('branches.business', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })
-            ->firstOrFail();
+            ->first();
 
-        // Validar los datos de la solicitud
-        $validatedData = $request->validated();
+        if (!$promotionBranch) {
+            return response()->json(['message' => 'Branch Promotion Not Found or Not Belonging to Authenticated User'], 404);
+        }
 
-        // Actualizar los datos de la promoción de sucursal
-        $promotionBranch->update($validatedData);
+        // Actualizar los atributos de la promoción de sucursal según la solicitud
+        $promotionBranch->update($request->validated());
 
-        // Devolver una respuesta JSON con la promoción de sucursal actualizada
-        return response()->json(['message' => 'Promotion branch updated successfully', 'branch_promotion' => new PromotionBranchResource($promotionBranch)], 200);
-    } catch (ModelNotFoundException $e) {
-        // Manejar el caso en el que no se encuentre la promoción de sucursal
-        return response()->json(['message' => 'Promotion branch not found'], 404);
+        return response()->json(new PromotionBranchResource($promotionBranch), 200);
     } catch (\Exception $e) {
-        // Manejar cualquier otra excepción que ocurra durante el proceso
-        return response()->json(['message' => 'Error updating promotion branch'], 500);
+        return response()->json(['message' => 'Error updating branch promotion: ' . $e->getMessage()], 500);
     }
 }
+
+
+
 
 
 

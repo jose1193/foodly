@@ -89,7 +89,9 @@ public function updateImage(UpdateCategoryImageRequest $request, $uuid)
         }
 
         // Devolver el recurso actualizado
-        return new CategoryResource($category);
+        
+        return response()->json( new CategoryResource($category), 200);
+       
     } catch (\Exception $e) {
         // Manejar el error
         return response()->json(['error' => 'Error updating category image'], 500);
@@ -99,39 +101,41 @@ public function updateImage(UpdateCategoryImageRequest $request, $uuid)
 
 
 
-
-   public function show($uuid)
+public function show($uuid)
 {
-    // Encontrar la categoría por su ID
-     $category = Category::where('category_uuid', $uuid)->first();
+    try {
+        // Encontrar la categoría por su UUID
+        $category = Category::where('category_uuid', $uuid)->firstOrFail();
 
-    // Devolver una respuesta JSON con la categoría encontrada o un mensaje de error si no se encuentra
-    return $category ? 
-        response()->json(['categories' => new CategoryResource($category)]) :
-        response()->json(['message' => 'Category not found'], 404);
+        // Devolver una respuesta JSON con la categoría encontrada
+        return response()->json(new CategoryResource($category), 200);
+    } catch (ModelNotFoundException $e) {
+        // Manejar el caso en que la categoría no se encuentre
+        return response()->json(['message' => 'Category not found'], 404);
+    }
 }
 
 
 
 
 
-  public function update(CategoryRequest $request, $uuid)
+
+ public function update(CategoryRequest $request, $uuid)
 {
-    // Encontrar la categoría por su ID
-    $category = Category::where('category_uuid', $uuid)->first();
+    try {
+        // Encontrar la categoría por su UUID
+        $category = Category::where('category_uuid', $uuid)->firstOrFail();
 
-    // Verificar si se encontró la categoría
-    if (!$category) {
+        // Actualizar la categoría con los datos validados de la solicitud
+        $category->update($request->validated());
+
+        // Devolver una respuesta JSON con la categoría actualizada
+        return response()->json(new CategoryResource($category), 200);
+    } catch (ModelNotFoundException $e) {
         return response()->json(['message' => 'Category not found'], 404);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Error updating category'], 500);
     }
-
-    // Actualizar la categoría con los datos validados de la solicitud
-    $category->update($request->validated());
-
-    // Devolver una respuesta JSON con la categoría actualizada
-    return $category ? 
-        response()->json(['message' => 'Category updated successfully', 'category' => new CategoryResource($category)], 200) :
-        response()->json(['message' => 'Error updating category'], 500);
 }
 
 

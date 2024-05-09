@@ -32,44 +32,50 @@ class SubcategoryController extends Controller
     $subcategory = Subcategory::create($validatedData);
 
     return $subcategory
-        ? response()->json(['message' => 'Subcategory created successfully', 'subcategories' => new SubcategoryResource($subcategory)], 201)
-        : response()->json(['message' => 'Error creating category'], 500);
+        ? response()->json(['subcategories' => new SubcategoryResource($subcategory)], 200)
+        : response()->json(['message' => 'Error creating subcategory'], 500);
 }
 
 
 
     public function show($uuid)
 {
-    $subcategory = Subcategory::where('subcategory_uuid', $uuid)->first();
-   
-    if (!$subcategory) {
+    try {
+        // Encontrar la subcategoría por su UUID
+        $subcategory = Subcategory::where('subcategory_uuid', $uuid)->firstOrFail();
+
+        // Devolver una respuesta JSON con la subcategoría encontrada
+        return response()->json(new SubcategoryResource($subcategory), 200);
+    } catch (ModelNotFoundException $e) {
+        // Manejar el caso en que la subcategoría no se encuentre
         return response()->json(['message' => 'Subcategory not found'], 404);
     }
-    // Devolver una respuesta JSON con la subcategoría encontrada
-    return response()->json(['subcategories' => new SubcategoryResource($subcategory)]);
 }
 
 
 
 
-   public function update(SubcategoryRequest $request, $uuid)
+
+  public function update(SubcategoryRequest $request, $uuid)
 {
-    // Encontrar la subcategoría por su ID
-     $subcategory = Subcategory::where('subcategory_uuid', $uuid)->first();
+    try {
+        // Encontrar la subcategoría por su UUID
+        $subcategory = Subcategory::where('subcategory_uuid', $uuid)->firstOrFail();
 
-    // Verificar si se encontró la subcategoría
-    if (!$subcategory) {
+        // Actualizar la subcategoría con los datos validados de la solicitud
+        $subcategory->update($request->validated());
+
+        // Devolver una respuesta JSON con la subcategoría actualizada
+        return response()->json(new SubcategoryResource($subcategory), 200);
+    } catch (ModelNotFoundException $e) {
+        // Manejar el caso en que la subcategoría no se encuentre
         return response()->json(['message' => 'Subcategory not found'], 404);
+    } catch (\Exception $e) {
+        // Manejar cualquier otra excepción
+        return response()->json(['message' => 'Error updating subcategory'], 500);
     }
-
-    // Actualizar la subcategoría con los datos validados de la solicitud
-    $subcategory->update($request->validated());
-
-    // Devolver una respuesta JSON con un mensaje de éxito y la subcategoría actualizada
-    return $subcategory ? 
-        response()->json(['message' => 'Subcategory updated successfully', 'subcategories' => new SubcategoryResource($subcategory)], 200) :
-        response()->json(['message' => 'Error updating subcategory'], 500);
 }
+
 
 
 

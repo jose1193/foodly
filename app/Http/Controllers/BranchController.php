@@ -34,9 +34,10 @@ class BranchController extends Controller
         // Obtener el usuario autenticado y sus negocios asociados con Eloquent Relationships
         $user = auth()->user();
         $businesses = $user->businesses->pluck('id');
+        $businesses = collect($businesses);
 
         // Obtener todas las sucursales asociadas a los negocios del usuario autenticado, incluidas las eliminadas
-        $businessBranches = BusinessBranch::withTrashed()->whereIn('user_id', $user->id)->orderByDesc('id')->get();
+        $businessBranches = BusinessBranch::withTrashed()->whereIn('business_id', $businesses)->orderByDesc('id')->get();
 
         // Verificar si se encontraron sucursales
         if ($businessBranches->isEmpty()) {
@@ -45,7 +46,7 @@ class BranchController extends Controller
         }
 
         // Devolver las sucursales encontradas como respuesta JSON
-        return response()->json(['message' => 'Business branches retrieved successfully', 'business_branches' => BranchResource::collection($businessBranches)], 200);
+        return response()->json(['business_branches' => BranchResource::collection($businessBranches)], 200);
     } catch (\Exception $e) {
         // Manejar cualquier excepción que ocurra durante el proceso
         return response()->json(['message' => 'Error retrieving business branches'], 500);
@@ -96,35 +97,39 @@ class BranchController extends Controller
 
 
 
-
 public function updateLogo(Request $request, $uuid)
 {
     try {
         $business_branch = BusinessBranch::where('branch_uuid', $uuid)->firstOrFail();
 
-        // Validar el archivo de imagen
-        if ($request->hasFile('branch_logo') && $request->file('branch_logo')->isValid()) {
+        if ($request->hasFile('branch_logo')) {
+            // Obtener el archivo de imagen
+            $image = $request->file('branch_logo');
+
             // Eliminar la imagen anterior si existe
             if ($business_branch->branch_logo) {
                 $this->deleteImage($business_branch->branch_logo);
             }
 
-            // Guardar la nueva imagen
-            $photoPath = $this->storeAndResizeImage($request->file('branch_logo'));
+            // Guardar la nueva imagen y obtener la ruta
+            $photoPath = ImageHelper::storeAndResize($image, 'public/branch_logos');
+
+            // Actualizar la ruta de la imagen en el modelo Branch
             $business_branch->branch_logo = $photoPath;
         }
 
-        // Guardar cambios en el modelo Business Branch
+        // Guardar los cambios en el modelo BusinessBranch
         $business_branch->save();
 
         // Devolver el recurso actualizado
-        return response()->json(['message' => 'Business Branch Logo updated successfully', 'business_branch' => new BranchResource($business_branch)], 200);
+         return response()->json(new BranchResource($business_branch), 200);
     } catch (ModelNotFoundException $e) {
         return response()->json(['error' => 'Business branch not found'], 404);
     } catch (\Exception $e) {
         return response()->json(['error' => 'Error updating business branch logo image'], 500);
     }
 }
+
 
 
 
@@ -139,14 +144,20 @@ private function deleteImage($imagePath)
     /**
      * Display the specified resource.
      */
-    public function show(string $uuid)
-     {
-         $business_branch = BusinessBranch::withTrashed()->where('branch_uuid', $uuid)->first();
-       
-       return $business_branch
-        ? response()->json(['message' => 'Business Branch retrieved successfully', 'business_branch' => new BranchResource($business_branch)], 200)
-        : response()->json(['message' => 'Business Branch not found'], 404);
+ public function show(string $uuid)
+{
+    try {
+        // Obtener la sucursal del negocio por su UUID
+        $business_branch = BusinessBranch::withTrashed()->where('branch_uuid', $uuid)->firstOrFail();
+        
+        // Devolver una respuesta JSON con la sucursal del negocio
+        return response()->json(new BranchResource($business_branch), 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción que ocurra durante el proceso
+        return response()->json(['message' => 'Business Branch not found'], 404);
     }
+}
+
 
     /**
      * Update the specified resource in storage.
@@ -170,7 +181,7 @@ private function deleteImage($imagePath)
         $business_branch->update($request->validated());
 
         // Devolver una respuesta JSON con la sucursal actualizada
-        return response()->json(['message' => 'Business Branch updated successfully', 'business_branch' => new BranchResource($business_branch)], 200);
+        return response()->json(new BranchResource($business_branch), 200);
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
         // La sucursal no fue encontrada
         return response()->json(['message' => 'Business Branch not found'], 404);

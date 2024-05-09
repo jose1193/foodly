@@ -47,7 +47,7 @@ class BusinessController extends Controller
         }
 
         // Devolver los negocios encontrados como respuesta JSON, incluidos los eliminados
-        return response()->json(['message' => 'Businesses retrieved successfully', 'businesses' => BusinessResource::collection($businesses)], 200);
+        return response()->json(['businesses' => BusinessResource::collection($businesses)], 200);
     } catch (\Illuminate\Database\QueryException $e) {
         // Manejar errores de consulta SQL
         return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
@@ -57,21 +57,13 @@ class BusinessController extends Controller
     }
 }
 
-
- public function show($uuid)
+public function show($uuid)
 {
     try {
         // Obtener el negocio por su UUID, incluidos los eliminados
-        $business = Business::withTrashed()->where('business_uuid', $uuid)->first();
+       $business = Business::withTrashed()->where('business_uuid', $uuid)->firstOrFail();
         
-        // Verificar si se encontr贸 el negocio
-        if ($business) {
-            // Si se encuentra el negocio, devolver una respuesta 200 con los datos del negocio
-            return response()->json(['message' => 'Business retrieved successfully', 'business' => new BusinessResource($business)], 200);
-        } else {
-            // Si no se encuentra el negocio, devolver una respuesta 404
-            return response()->json(['message' => 'Business not found'], 404);
-        }
+         return response()->json( new BusinessResource($business), 200);
     } catch (\Illuminate\Database\QueryException $e) {
         // Manejar errores de consulta SQL
         return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
@@ -80,6 +72,7 @@ class BusinessController extends Controller
         return response()->json(['message' => 'Error retrieving business'], 500);
     }
 }
+
 
 
    public function store(BusinessRequest $request)
@@ -111,14 +104,13 @@ class BusinessController extends Controller
 
         // Devolver una respuesta adecuada
         return $business
-            ? response()->json(['message' => 'Business created successfully', 'business' => new BusinessResource($business)], 201)
+            ? response()->json(['business' => new BusinessResource($business)], 201)
             : response()->json(['message' => 'Error creating business'], 500);
     } catch (\Exception $e) {
         // Manejar errores inesperados
         return response()->json(['message' => 'An error occurred: '.$e->getMessage()], 500);
     }
 }
-
 
 
 public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
@@ -144,7 +136,7 @@ public function updateLogo(UpdateBusinessLogoRequest $request, $uuid)
         }
 
         // Devolver el recurso actualizado
-        return new BusinessResource($business);
+        return response()->json( new BusinessResource($business), 200);
     } catch (\Exception $e) {
         // Manejar el error
         return response()->json(['error' => $e->getMessage()], 500);
@@ -167,40 +159,45 @@ private function deleteImage($imagePath)
 
 
    
-
 public function update(BusinessRequest $request, $uuid)
 {
-    // Obtener el negocio por su UUID asociado al usuario autenticado
-    $business = auth()->user()->businesses()->where('business_uuid', $uuid)->first();
+    try {
+        // Obtener el negocio por su UUID asociado al usuario autenticado
+        $business = auth()->user()->businesses()->where('business_uuid', $uuid)->firstOrFail();
 
-    if ($business) {
         // Actualizar el negocio con los datos validados
         $business->update($request->validated());
 
         // Devolver una respuesta JSON con el negocio actualizado
         return response()->json(['message' => 'Business updated successfully', 'business' => new BusinessResource($business)], 200);
-    } else {
-        // El negocio no fue encontrado o no pertenece al usuario autenticado
-        return response()->json(['message' => 'Business not found or unauthorized'], 404);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción que ocurra durante el proceso
+        return response()->json(['message' => 'Error updating business'], 500);
     }
 }
+
+
+
 
 
 
 
 public function destroy($uuid)
 {
-    $business = Business::where('business_uuid', $uuid)->first();
+    try {
+        // Obtener el negocio por su UUID
+        $business = Business::where('business_uuid', $uuid)->firstOrFail();
 
-    if (!$business) {
-        return response()->json(['message' => 'Business not found'], 404);
+        // Marcar el negocio como eliminado
+        $business->delete();
+
+        return response()->json(['message' => 'Business deleted successfully'], 200);
+    } catch (\Exception $e) {
+        // Manejar cualquier excepción que ocurra durante el proceso
+        return response()->json(['message' => 'Error deleting business'], 500);
     }
-
-    // Marcar el negocio como eliminado
-    $business->delete();
-
-    return response()->json(['message' => 'Business deleted successfully'], 200);
 }
+
 
 
 public function restore($uuid)

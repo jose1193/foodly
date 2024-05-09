@@ -11,7 +11,7 @@ class ImageHelper
     {
         $photoPath = self::storeImage($image, $storagePath);
         self::resizeImage(storage_path('app/'.$photoPath));
-        return 'app/'.$photoPath;
+        return 'storage/app/'.$photoPath;
     }
 
     private static function storeImage($image, $storagePath)
