@@ -105,7 +105,7 @@ public function store(BusinessRequest $request)
             Mail::to($business->user->email)->queue(new WelcomeMailBusiness($business->user, $business));
 
             // Devolver una respuesta adecuada
-            return response()->json(['business' => new BusinessResource($business)], 201);
+            return response()->json(['business' => new BusinessResource($business)], 200);
         });
     } catch (\Exception $exception) {
         // Manejo específico de excepciones fuera de la transacción
