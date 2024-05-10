@@ -53,7 +53,7 @@ class UpdatePasswordResetRequest extends FormRequest
 
             'errors'      => $validator->errors()
 
-        ]));
+        ], 422));
 
     }
 }

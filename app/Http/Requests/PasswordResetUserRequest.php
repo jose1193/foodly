@@ -44,7 +44,7 @@ class PasswordResetUserRequest extends FormRequest
 
             'errors'      => $validator->errors()
 
-        ]));
+        ], 422));
 
     }
 }

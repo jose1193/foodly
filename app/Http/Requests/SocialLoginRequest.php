@@ -44,7 +44,7 @@ class SocialLoginRequest extends FormRequest
 
             'errors'      => $validator->errors()
 
-        ]));
+        ], 422));
 
     }
 }

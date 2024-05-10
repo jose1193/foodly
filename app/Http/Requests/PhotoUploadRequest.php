@@ -43,7 +43,7 @@ class PhotoUploadRequest extends FormRequest
 
             'errors'      => $validator->errors()
 
-        ]));
+        ],422));
 
     }
 }

@@ -45,7 +45,7 @@ class SubcategoryRequest extends FormRequest
 
             'errors'      => $validator->errors()
 
-        ]));
+        ], 422));
 
     }
 
