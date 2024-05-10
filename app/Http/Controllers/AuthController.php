@@ -22,6 +22,8 @@ use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
+
+    
 public function __construct()
 {
     $this->middleware('permission:Super Admin')->only(['getUsers']);
