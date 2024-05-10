@@ -6,71 +6,58 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Actions\Fortify\UpdateUserProfileInformation;
-use Intervention\Image\ImageManagerStatic as Image;
+use App\Helpers\ImageHelper;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-
+use App\Http\Requests\PhotoUploadRequest;
 
 
 class ProfilePhotoController extends Controller
 {
     public function update(Request $request)
     {
-        $user = $request->user(); // Obtén el usuario autenticado
+        try {
+            // Validar el archivo de foto recibido en la solicitud
+            $request->validate([
+                'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:5048', // Validación de la imagen
+            ]);
 
-        $request->validate([
-            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png'],
-        ]);
+            $user = $request->user(); // Obtén el usuario autenticado
 
-        if ($request->hasFile('photo')) {
-            $photo = $request->file('photo'); // Obtén el objeto UploadedFile
+            $image = $request->file('photo'); // Obtener el archivo de imagen validado
+            if ($image) {
+                // Eliminar la imagen anterior si existe
+                if ($user->profile_photo_path) {
+                    $this->deleteImage($user->profile_photo_path);
+                }
+
+                // Guardar la nueva imagen y obtener la ruta
+                $photoPath = ImageHelper::storeAndResizeProfilePhoto($image, 'public/profile-photos');
+                $user->update(['profile_photo_path' => $photoPath]);
+            }
+
+            return response()->json([
+                'user' => ['photo' => $user->profile_photo_url ],
+                'message' => 'Successfully updated profile photo',
+            ]);
+        } catch (\Exception $e) {
+            // Registrar el error
+            Log::error('Error updating profile photo: ' . $e->getMessage());
             
-            // Crear una instancia de Intervention Image
-            $image = Image::make($photo->getRealPath());
-
-            // Obtén el ancho y alto de la imagen original
-            $originalWidth = $image->width();
-            $originalHeight = $image->height();
-
-            // Verifica si el ancho o el alto son mayores que 700 para redimensionar
-            if ($originalWidth > 700 || $originalHeight > 700) {
-                // Calcula el factor de escala para mantener la relación de aspecto
-                $scaleFactor = min(700 / $originalWidth, 700 / $originalHeight);
-
-                // Calcula el nuevo ancho y alto para redimensionar la imagen
-                $newWidth = $originalWidth * $scaleFactor;
-                $newHeight = $originalHeight * $scaleFactor;
-
-                // Redimensiona la imagen
-                $image->resize($newWidth, $newHeight);
-            }
-
-            // Genera una ruta única para la nueva imagen
-            $path = $photo->store('profile-photos', 'public');
-
-          // Elimina la imagen anterior si existe
-           if ($user->profile_photo_path) {
-          $pathWithoutAppPublic = str_replace('app/public/', '', $user->profile_photo_path);
-            Storage::disk('public')->delete($pathWithoutAppPublic);
-            }
-
-
-            // Guarda la imagen manipulada en la ruta
-            $image->save(storage_path('app/public/' . $path));
-
-            // Actualiza la foto de perfil del usuario con la ruta de la nueva imagen
-            $user->profile_photo_path = 'app/public/' . $path;
-            $user->save();
+            // Devolver una respuesta de error
+            return response()->json([
+                'error' => 'Failed to update profile photo',
+                'message' => $e->getMessage()
+            ], 500); // Código de estado HTTP para errores internos del servidor
         }
-
-        $response = [
-            'user' => [
-                'photo' => $user->profile_photo_url
-            ],
-            'message' => 'Successfully updated profile photo',
-            
-        ];
-
-        // Retornar la respuesta JSON
-        return response()->json($response);
     }
-}
+
+    private function deleteImage($imagePath)
+    {
+        $pathWithoutAppPublic = str_replace('app/public/', '', $imagePath);
+        Storage::disk('public')->delete($pathWithoutAppPublic);
+    }
+
+    
+    }
+

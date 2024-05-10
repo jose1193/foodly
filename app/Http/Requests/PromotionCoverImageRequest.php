@@ -42,7 +42,7 @@ class PromotionCoverImageRequest extends FormRequest
 
             'errors'      => $validator->errors()
 
-        ]));
+        ], 422));
 
     }
 }

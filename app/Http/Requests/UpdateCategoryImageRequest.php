@@ -40,7 +40,7 @@ class UpdateCategoryImageRequest extends FormRequest
 
             'errors'      => $validator->errors()
 
-        ]));
+        ], 422));
 
     }
 }

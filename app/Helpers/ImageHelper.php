@@ -14,6 +14,21 @@ class ImageHelper
         return 'storage/app/'.$photoPath;
     }
 
+
+    // Stores and resizes a profile picture, returns the relative path of the stored file, handles exceptions.
+    public static function storeAndResizeProfilePhoto($image, $storagePath)
+{
+    try {
+        $photoPath = self::storeImage($image, $storagePath);
+        self::resizeImage(storage_path('app/'.$photoPath));
+        return 'app/'.$photoPath;
+    } catch (\Exception $e) {
+        Log::error('Failed to store or resize image: ' . $e->getMessage());
+        return null;  // Retorna null o maneja el error como sea apropiado.
+    }
+}
+
+
     private static function storeImage($image, $storagePath)
     {
         // Guardar la imagen

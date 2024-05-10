@@ -43,7 +43,7 @@ public function failedValidation(Validator $validator)
 
             'errors'      => $validator->errors()
 
-        ]));
+        ], 422));
 
     }
 

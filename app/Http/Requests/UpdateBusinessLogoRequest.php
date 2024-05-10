@@ -42,7 +42,7 @@ class UpdateBusinessLogoRequest extends FormRequest
 
             'errors'      => $validator->errors()
 
-        ]));
+        ], 422));
 
     }
 
