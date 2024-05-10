@@ -68,8 +68,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
    
     // Rutas protegidas por autenticación y verificación
     Route::post('logout', [AuthController::class, 'logout']);
-
-    Route::get('/users', [AuthController::class, 'getUsers']);
+    Route::get('user', [AuthController::class, 'user']);
+    //Route::get('/users', [AuthController::class, 'getUsers']);
     Route::post('update-password', [AuthController::class, 'updatePassword']);
     
     //Route::post('reset-password', [AuthController::class, 'resetPassword']);

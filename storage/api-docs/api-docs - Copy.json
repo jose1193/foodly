@@ -7,7 +7,7 @@
         "contact": {
             "name": "Foodly",
             "url": "https://www.foodly.world/",
-            "email": "support@example.com"
+            "email": "support@foodly.world"
         }
     },
     "servers": [
@@ -17,8 +17,16 @@
     ],
     "tags": [
         {
+            "name": "SocialAuth",
+            "description": "Handles Foodly users social networks authentication"
+        },
+        {
             "name": "Users",
             "description": "Handles Foodly users authentication information"
+        },
+        {
+            "name": "Reset User Password",
+            "description": "Handles resetting passwords for Foodly platform users."
         },
         {
             "name": "Permissions",
@@ -65,12 +73,20 @@
             "description": "Business Branches Cover Images"
         },
         {
-            "name": "Promotions",
+            "name": "Business Promotions",
             "description": "Business Promotions"
         },
         {
-            "name": "GoogleAuth",
-            "description": "Handles Foodly users google authentication"
+            "name": "Business Promotions Images",
+            "description": "Business Promotions Images"
+        },
+        {
+            "name": "Branch Promotions",
+            "description": "Business Branch Promotions"
+        },
+        {
+            "name": "Branch Promotions Images",
+            "description": "Business Branch Promotions Images"
         }
     ],
     "paths": {
@@ -117,8 +133,7 @@
                                 "$ref": "#/components/schemas/UserRegistration"
                             }
                         }
-                    },
-                    "required": true
+                    }
                 },
                 "responses": {
                     "200": {
@@ -139,107 +154,6 @@
                         "description": "Server error"
                     }
                 }
-            }
-        },
-        "/user": {
-            "get": {
-                "tags": ["Users"],
-                "summary": "Get user information",
-                "responses": {
-                    "200": {
-                        "description": "User information retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "example": [
-                                    {
-                                        "name": "John",
-                                        "uuid": "Id-abc123-56562-45656",
-                                        "last_name": "Doe",
-                                        "username": "john_doe",
-                                        "email": "john@example.com",
-                                        "phone": "123-456-7890",
-                                        "date_of_birth": "1990-01-01",
-                                        "address": "123 Main St",
-                                        "zip_code": "12345",
-                                        "city": "Exampleville",
-                                        "country": "Exampleland",
-                                        "gender": "Male",
-                                        "role_id": 1
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/users": {
-            "get": {
-                "tags": ["Users"],
-                "summary": "Get all registered users",
-                "responses": {
-                    "200": {
-                        "description": "List of registered users",
-                        "content": {
-                            "application/json": {
-                                "example": [
-                                    {
-                                        "uuid": "a1b2c3d4-5e6f-7g8h-9i10",
-                                        "name": "John",
-                                        "last_name": "Doe",
-                                        "username": "john_doe",
-                                        "email": "john@example.com",
-                                        "date_of_birth": "1990-01-01",
-                                        "phone": "123-456-7890",
-                                        "address": "123 Main St",
-                                        "zip_code": "12345",
-                                        "city": "Exampleville",
-                                        "country": "Exampleland",
-                                        "gender": "Male",
-                                        "role_id": 1
-                                    },
-                                    {
-                                        "uuid": "ID-m15n16o1-7p18q19r",
-                                        "name": "Jane",
-                                        "last_name": "Smith",
-                                        "username": "jane_smith",
-                                        "email": "jane@example.com",
-                                        "date_of_birth": "1995-02-15",
-                                        "phone": "987-654-3210",
-                                        "address": "456 Oak St",
-                                        "zip_code": "54321",
-                                        "city": "Sampletown",
-                                        "country": "Sampleland",
-                                        "gender": "Female",
-                                        "role_id": 2
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ]
             }
         },
         "/update-password": {
@@ -275,7 +189,7 @@
         },
         "/forgot-password": {
             "post": {
-                "tags": ["Users"],
+                "tags": ["Reset User Password"],
                 "summary": "Forgot password",
                 "requestBody": {
                     "content": {
@@ -291,8 +205,38 @@
                     "200": {
                         "description": "Password reset instructions sent successfully"
                     },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                }
+            }
+        },
+        "/enter-pin": {
+            "post": {
+                "tags": ["Reset User Password"],
+                "summary": "Reset user's password with token and enter PIN",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EnterPinPassword"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "PIN verified. Proceed with password reset"
+                    },
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "429": {
+                        "description": "(Too Many Requests) The client has sent too many requests in a given amount of time"
                     },
                     "500": {
                         "description": "Server error"
@@ -302,7 +246,7 @@
         },
         "/reset-password": {
             "post": {
-                "tags": ["Users"],
+                "tags": ["Reset User Password"],
                 "summary": "Reset user's password with token",
                 "requestBody": {
                     "content": {
@@ -316,10 +260,10 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Password reset successfully"
+                        "description": "Reset password instructions sent successfully"
                     },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
                     },
                     "500": {
                         "description": "Server error"
@@ -1089,20 +1033,21 @@
                 ]
             }
         },
-        "/users-id/{id}": {
+        "/users-profile/{uuid}": {
             "get": {
                 "tags": ["Users Data"],
-                "summary": "Get a user by ID",
+                "summary": "Get a user by UUID",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "uuid",
                         "in": "path",
                         "description": "ID of the user to retrieve",
                         "required": true,
                         "style": "simple",
                         "explode": false,
                         "schema": {
-                            "type": "integer"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
@@ -1147,20 +1092,21 @@
                 ]
             }
         },
-        "/users-list/{id}/edit": {
+        "/users-list/{uuid}/edit": {
             "get": {
                 "tags": ["Users Data"],
                 "summary": "User Profile With Roles and Permissions for editing",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "uuid",
                         "in": "path",
                         "description": "ID of the user to retrieve",
                         "required": true,
                         "style": "simple",
                         "explode": false,
                         "schema": {
-                            "type": "integer"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
@@ -1215,20 +1161,21 @@
                 ]
             }
         },
-        "/users-update/{id}": {
+        "/users-update/{uuid}": {
             "put": {
                 "tags": ["Users Data"],
-                "summary": "Update a user by ID",
+                "summary": "Update a user by UUID",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "uuid",
                         "in": "path",
                         "description": "ID of the user to retrieve",
                         "required": true,
                         "style": "simple",
                         "explode": false,
                         "schema": {
-                            "type": "integer"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
@@ -1263,26 +1210,66 @@
                 ]
             }
         },
-        "/users-delete/{id}": {
+        "/users-delete/{uuid}": {
             "delete": {
                 "tags": ["Users Data"],
-                "summary": "Delete a User by ID",
+                "summary": "Delete a User by UUID",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "uuid",
                         "in": "path",
                         "description": "ID of the user to retrieve",
                         "required": true,
                         "style": "simple",
                         "explode": false,
                         "schema": {
-                            "type": "integer"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     }
                 ],
                 "responses": {
                     "204": {
                         "description": "User deleted successfully"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/users-restore/{uuid}": {
+            "put": {
+                "tags": ["Users Data"],
+                "summary": "Restore a User by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "ID of the user to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "User restored successfully"
                     },
                     "401": {
                         "description": "(Unauthorized) No authorization to call the service"
@@ -2182,6 +2169,66 @@
                 ]
             }
         },
+        "/business-restore/{uuid}": {
+            "put": {
+                "tags": ["Business"],
+                "summary": "Restore a Business by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the business to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Business successfully restored",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "id": 1,
+                                    "user_id": "1",
+                                    "business_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                                    "business_logo": "https://example.com/business_logo.png",
+                                    "business_name": "Restaurante Internacional",
+                                    "business_email": "info@restauranteinternacional.com",
+                                    "business_phone": "+1 (555) 123-4567",
+                                    "business_address": "Calle Principal, 123",
+                                    "business_zipcode": "12345",
+                                    "business_city": "Ciudad Principal",
+                                    "business_country": "País Principal",
+                                    "business_website": "https://www.restauranteinternacional.com",
+                                    "business_latitude": 123.456,
+                                    "business_longitude": -78.91,
+                                    "category_id": "Cocina Portuguesa"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
         "/business-cover-images": {
             "get": {
                 "tags": ["Business Cover Images"],
@@ -2254,13 +2301,13 @@
                 ]
             }
         },
-        "/business-cover-images/{cover_image_uuid}": {
+        "/business-cover-images/{uuid}": {
             "get": {
                 "tags": ["Business Cover Images"],
                 "summary": "Get a Business Image by UUID",
                 "parameters": [
                     {
-                        "name": "cover_image_uuid",
+                        "name": "uuid",
                         "in": "path",
                         "description": "UUID of the business images to retrieve",
                         "required": true,
@@ -2303,13 +2350,13 @@
                 ]
             }
         },
-        "/business-cover-images-update/{cover_image_uuid}": {
+        "/business-cover-images-update/{uuid}": {
             "post": {
                 "tags": ["Business Cover Images"],
                 "summary": "Update Business Cover Images",
                 "parameters": [
                     {
-                        "name": "cover_image_uuid",
+                        "name": "uuid",
                         "in": "path",
                         "description": "UUID of the business images to retrieve",
                         "required": true,
@@ -2333,7 +2380,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Business Logo updated successfully"
+                        "description": "Business Image updated successfully"
                     },
                     "401": {
                         "description": "(Unauthorized) No authorization to call the service"
@@ -2349,13 +2396,13 @@
                 ]
             }
         },
-        "/business-cover-images-delete/{cover_image_uuid}": {
+        "/business-cover-images-delete/{uuid}": {
             "delete": {
                 "tags": ["Business Cover Images"],
                 "summary": "Delete a Business Cover Image by UUID",
                 "parameters": [
                     {
-                        "name": "cover_image_uuid",
+                        "name": "uuid",
                         "in": "path",
                         "description": "UUID of the business images to retrieve",
                         "required": true,
@@ -2411,7 +2458,7 @@
                                     {
                                         "id": 1,
                                         "branch_uuid": "d84e7fa6-9171-4ba1-bd2a-3e8322ae4c53",
-                                        "branch_logo": "https://example.com/another_business_logo.png",
+                                        "branch_logo": "https://example.com/another_branch_logo.png",
                                         "branch_name": "Cafetería del Pueblo",
                                         "branch_email": "info@cafeteriadelpueblo.com",
                                         "branch_phone": "+1 (555) 987-6543",
@@ -2426,7 +2473,7 @@
                                         "business": {
                                             "id": "1",
                                             "business_uuid": "d84e7fa6-9171-4ba1-bd2a-3e8322ae4c53",
-                                            "business_logo": "https://example.com/business_logo.png",
+                                            "business_logo": "https://example.com/branch_logo.png",
                                             "business_name": "Restaurante Italiano Bella Vista",
                                             "business_email": "info@bellavistaitaliano.com",
                                             "business_phone": "+1 (555) 123-4567",
@@ -2745,10 +2792,58 @@
                 ]
             }
         },
+        "/branch-restore/{uuid}": {
+            "put": {
+                "tags": ["Business Branch"],
+                "summary": "Restore a Business Branch by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the business branch to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Business Branch successfully restored",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "id": 1,
+                                    "branch_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+                                    "branch_name": "Cafetería del Centro"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
         "/branch-cover-images": {
             "get": {
                 "tags": ["Business Branch Cover Images"],
-                "summary": "Get all Registered Branches Images",
+                "summary": "Get all Images of Registered Branches",
                 "responses": {
                     "200": {
                         "description": "List of registered branches images",
@@ -2764,7 +2859,7 @@
                                     {
                                         "id": 2,
                                         "branch_image_uuid": "892504e0-4f89-41d3-9a0c-0305e82c3301",
-                                        "branch_image_path": "https://example.com/business_cover2.png",
+                                        "branch_image_path": "https://example.com/branch_cover2.png",
                                         "branch_id": "2"
                                     }
                                 ]
@@ -2843,7 +2938,7 @@
                                 "example": {
                                     "id": 1,
                                     "branch_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
-                                    "branch_image_path": "https://example.com/business_cover.png",
+                                    "branch_image_path": "https://example.com/branch_cover.png",
                                     "branch_id": "1"
                                 }
                             }
@@ -2896,7 +2991,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Business Logo updated successfully"
+                        "description": "Branch Image updated successfully"
                     },
                     "401": {
                         "description": "(Unauthorized) No authorization to call the service"
@@ -2963,7 +3058,7 @@
         },
         "/promotions": {
             "get": {
-                "tags": ["Promotions"],
+                "tags": ["Business Promotions"],
                 "summary": "Get all Registered Business Promotions",
                 "responses": {
                     "200": {
@@ -3008,7 +3103,7 @@
         },
         "/promotions-store": {
             "post": {
-                "tags": ["Promotions"],
+                "tags": ["Business Promotions"],
                 "summary": "Store a new Business Promotion",
                 "requestBody": {
                     "content": {
@@ -3043,13 +3138,13 @@
         },
         "/promotions/{uuid}": {
             "get": {
-                "tags": ["Promotions"],
+                "tags": ["Business Promotions"],
                 "summary": "Get a Business Promotion by UUID",
                 "parameters": [
                     {
                         "name": "uuid",
                         "in": "path",
-                        "description": "UUID of the business promotion to retrieve",
+                        "description": "UUID of the data to retrieve",
                         "required": true,
                         "style": "simple",
                         "explode": false,
@@ -3098,13 +3193,13 @@
         },
         "/promotions-update/{uuid}": {
             "put": {
-                "tags": ["Promotions"],
+                "tags": ["Business Promotions"],
                 "summary": "Update a Promotion by UUID",
                 "parameters": [
                     {
                         "name": "uuid",
                         "in": "path",
-                        "description": "UUID of the business promotion to retrieve",
+                        "description": "UUID of the data to retrieve",
                         "required": true,
                         "style": "simple",
                         "explode": false,
@@ -3150,13 +3245,13 @@
         },
         "/promotions-delete/{uuid}": {
             "delete": {
-                "tags": ["Promotions"],
+                "tags": ["Business Promotions"],
                 "summary": "Delete a Promotion by UUID",
                 "parameters": [
                     {
                         "name": "uuid",
                         "in": "path",
-                        "description": "UUID of the business promotion to retrieve",
+                        "description": "UUID of the data to retrieve",
                         "required": true,
                         "style": "simple",
                         "explode": false,
@@ -3187,13 +3282,213 @@
                 ]
             }
         },
-        "/google-auth/callback": {
-            "get": {
-                "tags": ["GoogleAuth"],
-                "summary": "Google Authentication Callback",
+        "/promotions-restore/{uuid}": {
+            "put": {
+                "tags": ["Business Promotions"],
+                "summary": "Restore a Promotion by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
                 "responses": {
-                    "302": {
-                        "description": "Redirect to frontend or dashboard after successful authentication"
+                    "200": {
+                        "description": "Promotion successfully restored",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "promotion_uuid": "8a256d16-55c0-4e37-a8f4-8db7c1e764d8",
+                                        "promotion_title": "Descuento de verano",
+                                        "promotion_description": "¡Aprovecha nuestro descuento especial de verano!",
+                                        "promotion_start_date": "2024-06-15",
+                                        "promotion_end_date": "2024-08-31",
+                                        "promotion_type": "Descuento",
+                                        "promotion_status": "Active"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/promotions-images": {
+            "get": {
+                "tags": ["Business Promotions Images"],
+                "summary": "Get all Images of Registered Business Promotions",
+                "responses": {
+                    "200": {
+                        "description": "List of registered business promotion images",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "promotion_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+                                        "promotion_image_path": "https://example.com/business_promotion.png",
+                                        "promotion_id": "1"
+                                    },
+                                    {
+                                        "id": 2,
+                                        "promotion_image_uuid": "892504e0-4f89-41d3-9a0c-0305e82c3301",
+                                        "promotion_image_path": "https://example.com/business_promotion2.png",
+                                        "promotion_id": "2"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/promotions-images-store": {
+            "post": {
+                "tags": ["Business Promotions Images"],
+                "summary": "Store new Business Promotion Images",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BusinessPromotionImagesRegistration"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Branch cover images stored successfully"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/promotions-images/{uuid}": {
+            "get": {
+                "tags": ["Business Promotions Images"],
+                "summary": "Get a Branch Image by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Branch Image details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "id": 1,
+                                    "branch_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+                                    "branch_image_path": "https://example.com/business_promotion_cover.png",
+                                    "branch_id": "1"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/promotions-images-update/{uuid}": {
+            "post": {
+                "tags": ["Business Promotions Images"],
+                "summary": "Update Business Promotion Images",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdatePromotionImages"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Promotion Image updated successfully"
                     },
                     "401": {
                         "description": "(Unauthorized) No authorization to call the service"
@@ -3201,16 +3496,567 @@
                     "500": {
                         "description": "Server error"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
             }
         },
-        "/google-auth/redirect": {
-            "get": {
-                "tags": ["GoogleAuth"],
-                "summary": "Redirect to Google authentication",
+        "/promotions-images-delete/{uuid}": {
+            "delete": {
+                "tags": ["Business Promotions Images"],
+                "summary": "Delete a Promotion Image by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
                 "responses": {
-                    "302": {
-                        "description": "Redirect to Google authentication page"
+                    "200": {
+                        "description": "Promotion Image successfully removed"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions": {
+            "get": {
+                "tags": ["Branch Promotions"],
+                "summary": "Get all Registered Branch Promotions",
+                "responses": {
+                    "200": {
+                        "description": "List of Branch Promotions",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "promotion_branch_uuid": "8a256d16-55c0-4e37-a8f4-8db7c1e764d8",
+                                        "promotion_branch_title": "Descuento de verano",
+                                        "promotion_branch_description": "¡Aprovecha nuestro descuento especial de verano!",
+                                        "promotion_branch_start_date": "2024-06-15",
+                                        "promotion_branch_end_date": "2024-08-31",
+                                        "promotion_branch_type": "Descuento",
+                                        "promotion_branch_status": "Active"
+                                    },
+                                    {
+                                        "id": 2,
+                                        "promotion_branch_uuid": "4f8329b8-3e43-4f20-9752-fb4d77f5f533",
+                                        "promotion_branch_title": "Oferta especial de fin de semana",
+                                        "promotion_branch_description": "¡Aprovecha nuestra oferta especial de fin de semana y obtén un 20% de descuento en todos los productos!",
+                                        "promotion_branch_start_date": "2024-07-20",
+                                        "promotion_branch_end_date": "2024-07-22",
+                                        "promotion_branch_type": "Oferta Especial",
+                                        "promotion_branch_status": "Active"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-store": {
+            "post": {
+                "tags": ["Branch Promotions"],
+                "summary": "Store a new Branch Promotion",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BranchPromotionsRegistration"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Promotion created successfully"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions/{uuid}": {
+            "get": {
+                "tags": ["Branch Promotions"],
+                "summary": "Get a Branch Promotion by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Branch Promotion details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "promotion_branch_uuid": "8a256d16-55c0-4e37-a8f4-8db7c1e764d8",
+                                        "promotion_branch_title": "Descuento de verano",
+                                        "promotion_branch_description": "¡Aprovecha nuestro descuento especial de verano!",
+                                        "promotion_branch_start_date": "2024-06-15",
+                                        "promotion_branch_end_date": "2024-08-31",
+                                        "promotion_branch_type": "Descuento",
+                                        "promotion_branch_status": "Active"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-update/{uuid}": {
+            "put": {
+                "tags": ["Branch Promotions"],
+                "summary": "Update a Branch Promotion by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateBranchPromotions"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subcategory updated successfully"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-delete/{uuid}": {
+            "delete": {
+                "tags": ["Branch Promotions"],
+                "summary": "Delete a Branch by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Branch successfully removed"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-restore/{uuid}": {
+            "put": {
+                "tags": ["Branch Promotions"],
+                "summary": "Restore a Branch by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Branch successfully restored",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "promotion_branch_uuid": "8a256d16-55c0-4e37-a8f4-8db7c1e764d8",
+                                        "promotion_branch_title": "Descuento de verano",
+                                        "promotion_branch_description": "¡Aprovecha nuestro descuento especial de verano!",
+                                        "promotion_branch_start_date": "2024-06-15",
+                                        "promotion_branch_end_date": "2024-08-31",
+                                        "promotion_branch_type": "Descuento",
+                                        "promotion_branch_status": "Active"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-images": {
+            "get": {
+                "tags": ["Branch Promotions Images"],
+                "summary": "Get all Images of Registered Branch Promotions",
+                "responses": {
+                    "200": {
+                        "description": "List of registered branch promotions images",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "id": 1,
+                                        "promotion_branch_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+                                        "promotion_branch_image_path": "https://example.com/promotion_branch.png",
+                                        "promotion_branch_id": "1"
+                                    },
+                                    {
+                                        "id": 2,
+                                        "promotion_branch_image_uuid": "892504e0-4f89-41d3-9a0c-0305e82c3301",
+                                        "promotion_branch_image_path": "https://example.com/promotion_branch2.png",
+                                        "promotion_branch_id": "2"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-images-store": {
+            "post": {
+                "tags": ["Branch Promotions Images"],
+                "summary": "Store new Branch Promotion Images",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BranchPromotionImagesRegistration"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Branch Promotion images stored successfully"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-images/{uuid}": {
+            "get": {
+                "tags": ["Branch Promotions Images"],
+                "summary": "Get a Branch Promotion Image by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Promotion Branch Image details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "id": 1,
+                                    "branch_branch_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
+                                    "promotion_branch_image_path": "https://example.com/promotion_branch_cover.png",
+                                    "promotion_branch_id": "1"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-images-update/{uuid}": {
+            "post": {
+                "tags": ["Branch Promotions Images"],
+                "summary": "Update Business Promotion Images",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateBranchPromotionImages"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Branch Promotion Image updated successfully"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branch-promotions-images-delete/{uuid}": {
+            "delete": {
+                "tags": ["Branch Promotions Images"],
+                "summary": "Delete a Branch Promotion Image by UUID",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "description": "UUID of the data to retrieve",
+                        "required": true,
+                        "style": "simple",
+                        "explode": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Branch Promotion Image successfully removed"
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "404": {
+                        "description": "(NotFound) No information found"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/social-login": {
+            "post": {
+                "tags": ["SocialAuth"],
+                "summary": "Social Networks Authentication Callback",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SocialLoginRegistration"
+                            },
+                            "example": {
+                                "provider": "google",
+                                "access_provider_token": "your_google_access_token_here"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Redirect to frontend or dashboard after successful authentication"
+                    },
+                    "422": {
+                        "description": "(Unprocessable Entity) Validation failed"
+                    },
+                    "500": {
+                        "description": "Server error"
                     }
                 }
             }
@@ -3221,6 +4067,11 @@
             "UserRegistration": {
                 "type": "object",
                 "properties": {
+                    "photo": {
+                        "type": "string",
+                        "description": "Photo of the user",
+                        "format": "binary"
+                    },
                     "name": {
                         "type": "string",
                         "description": "Name of the user"
@@ -3246,10 +4097,6 @@
                         "type": "string",
                         "description": "Password of the user"
                     },
-                    "password_confirmation": {
-                        "type": "string",
-                        "description": "Password confirmation"
-                    },
                     "phone": {
                         "type": "string",
                         "description": "Phone number of the user"
@@ -3274,13 +4121,21 @@
                         "type": "string",
                         "description": "Gender of the user"
                     },
-                    "photo": {
-                        "type": "string",
-                        "format": "binary"
-                    },
                     "role_id": {
                         "type": "integer",
                         "description": "Role ID of the user"
+                    },
+                    "provider": {
+                        "type": "string",
+                        "description": "Name of the Social Provider"
+                    },
+                    "provider_id": {
+                        "type": "string",
+                        "description": "Provider Id of the Social Provider"
+                    },
+                    "provider_avatar": {
+                        "type": "string",
+                        "description": "User avatar of the Social Provider"
                     }
                 }
             },
@@ -3317,10 +4172,26 @@
                     "token": {
                         "type": "string"
                     },
-                    "newPassword": {
+                    "password": {
                         "type": "string"
                     },
-                    "passwordConfirmation": {
+                    "password_confirmation": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EnterPinPassword": {
+                "required": ["pin", "token"],
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "pin": {
                         "type": "string"
                     }
                 }
@@ -3361,10 +4232,6 @@
                     },
                     "gender": {
                         "type": "string"
-                    },
-                    "photo": {
-                        "type": "string",
-                        "format": "binary"
                     }
                 }
             },
@@ -3560,12 +4427,14 @@
                         "description": "Website of the business"
                     },
                     "business_latitude": {
-                        "type": "string",
-                        "description": "Latitude of the business"
+                        "type": "number",
+                        "description": "Latitude of the business",
+                        "format": "double"
                     },
                     "business_longitude": {
-                        "type": "string",
-                        "description": "Longitude of the business"
+                        "type": "number",
+                        "description": "Longitude of the business",
+                        "format": "double"
                     },
                     "category_id": {
                         "type": "integer",
@@ -3858,21 +4727,143 @@
                     }
                 }
             },
+            "BusinessPromotionImagesRegistration": {
+                "type": "object",
+                "properties": {
+                    "promotion_image_path": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    },
+                    "promotion_id": {
+                        "type": "integer",
+                        "description": "Id of the promotion"
+                    }
+                }
+            },
+            "UpdatePromotionImages": {
+                "type": "object",
+                "properties": {
+                    "promotion_image_path": {
+                        "type": "string",
+                        "format": "binary"
+                    }
+                }
+            },
+            "BranchPromotionsRegistration": {
+                "type": "object",
+                "properties": {
+                    "promotion_branch_title": {
+                        "type": "string",
+                        "description": "Title of the branch promotion"
+                    },
+                    "promotion_branch_description": {
+                        "type": "string",
+                        "description": "Description of the branch promotion"
+                    },
+                    "promotion_branch_start_date": {
+                        "type": "string",
+                        "description": "Start date of the branch promotion"
+                    },
+                    "promotion_branch_end_date": {
+                        "type": "string",
+                        "description": "End date of the branch promotion"
+                    },
+                    "promotion__branch_type": {
+                        "type": "string",
+                        "description": "Type of the branch promotion"
+                    },
+                    "promotion_branch_status": {
+                        "type": "string",
+                        "description": "Status of the branch promotion"
+                    },
+                    "branch_id": {
+                        "type": "integer",
+                        "description": "ID of the associated branch"
+                    }
+                }
+            },
+            "UpdateBranchPromotions": {
+                "type": "object",
+                "properties": {
+                    "promotion_branch_title": {
+                        "type": "string",
+                        "description": "Title of the branch promotion"
+                    },
+                    "promotion_branch_description": {
+                        "type": "string",
+                        "description": "Description of the branch promotion"
+                    },
+                    "promotion_branch_start_date": {
+                        "type": "string",
+                        "description": "Start date of the branch promotion"
+                    },
+                    "promotion_branch_end_date": {
+                        "type": "string",
+                        "description": "End date of the branch promotion"
+                    },
+                    "promotion_branch_type": {
+                        "type": "string",
+                        "description": "Type of the branch promotion"
+                    },
+                    "promotion_branch_status": {
+                        "type": "string",
+                        "description": "Status of the branch promotion"
+                    },
+                    "branch_id": {
+                        "type": "integer",
+                        "description": "ID of the associated branc"
+                    }
+                }
+            },
+            "BranchPromotionImagesRegistration": {
+                "type": "object",
+                "properties": {
+                    "promotion_branch_image_path": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    },
+                    "promotion_branch_id": {
+                        "type": "integer",
+                        "description": "Id of the branch promotion"
+                    }
+                }
+            },
+            "UpdateBranchPromotionImages": {
+                "type": "object",
+                "properties": {
+                    "promotion_branch_image_path": {
+                        "type": "string",
+                        "format": "binary"
+                    }
+                }
+            },
+            "SocialLoginRegistration": {
+                "type": "object",
+                "properties": {
+                    "provider": {
+                        "type": "string",
+                        "description": "Name of the Social Provider"
+                    },
+                    "access_provider_token": {
+                        "type": "string",
+                        "description": "Access Provider Token of the Social Provider"
+                    }
+                }
+            },
             "updatepassword_body": {
-                "required": [
-                    "current_password",
-                    "new_password",
-                    "password_confirmation"
-                ],
+                "required": ["current_password", "new_password"],
                 "type": "object",
                 "properties": {
                     "current_password": {
                         "type": "string"
                     },
                     "new_password": {
-                        "type": "string"
-                    },
-                    "password_confirmation": {
                         "type": "string"
                     }
                 }
@@ -3896,6 +4887,9 @@
             },
             "ServerError": {
                 "description": "Server error"
+            },
+            "TooManyRequests": {
+                "description": "(Too Many Requests) The client has sent too many requests in a given amount of time"
             }
         },
         "parameters": {
@@ -3922,14 +4916,15 @@
                 }
             },
             "UserId": {
-                "name": "id",
+                "name": "uuid",
                 "in": "path",
                 "description": "ID of the user to retrieve",
                 "required": true,
                 "style": "simple",
                 "explode": false,
                 "schema": {
-                    "type": "integer"
+                    "type": "string",
+                    "format": "uuid"
                 }
             },
             "CategoryId": {
@@ -3969,7 +4964,7 @@
                 }
             },
             "BusinessCoverImagesId": {
-                "name": "cover_image_uuid",
+                "name": "uuid",
                 "in": "path",
                 "description": "UUID of the business images to retrieve",
                 "required": true,
@@ -4004,10 +4999,10 @@
                     "format": "uuid"
                 }
             },
-            "PromotionId": {
+            "resourceId": {
                 "name": "uuid",
                 "in": "path",
-                "description": "UUID of the business promotion to retrieve",
+                "description": "UUID of the data to retrieve",
                 "required": true,
                 "style": "simple",
                 "explode": false,

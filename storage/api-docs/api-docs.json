@@ -156,6 +156,49 @@
                 }
             }
         },
+        "/user": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Get user information",
+                "responses": {
+                    "200": {
+                        "description": "User information retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "example": [
+                                    {
+                                        "uuid": "ID-a1b2c3d4-5e6f-7g8h-9i10",
+                                        "name": "John",
+                                        "last_name": "Doe",
+                                        "username": "john_doe",
+                                        "email": "john@example.com",
+                                        "phone": "123-456-7890",
+                                        "date_of_birth": "10-01-1990",
+                                        "address": "123 Main St",
+                                        "zip_code": "12345",
+                                        "city": "Exampleville",
+                                        "country": "Exampleland",
+                                        "gender": "Male",
+                                        "user_role": "Role"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "(Unauthorized) No authorization to call the service"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ]
+            }
+        },
         "/update-password": {
             "post": {
                 "tags": ["Users"],

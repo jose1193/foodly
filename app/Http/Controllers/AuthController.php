@@ -23,7 +23,7 @@ use App\Http\Resources\UserResource;
 class AuthController extends Controller
 {
 
-    
+
 public function __construct()
 {
     $this->middleware('permission:Super Admin')->only(['getUsers']);
@@ -112,7 +112,27 @@ public function logout2()
     }
 }
 
+// DETAILS CURRENT USER
 
+   public function user(Request $request) {
+    // Obtener el usuario autenticado
+    $user = $request->user();
+
+    // Crear un recurso de usuario con los detalles básicos del usuario
+    $userResource = new UserResource($user);
+
+    // Obtener los roles asignados al usuario
+    $userRoles = $user->roles->pluck('name')->all();
+
+    // Añadir la información de los roles al arreglo de datos del recurso de usuario
+    $userResource->additional(['user_role' => $userRoles]);
+
+    // Convertir el recurso de usuario y sus datos adicionales a un array
+    $responseData = $userResource->toArray($request);
+
+    // Retornar los datos como una respuesta JSON
+    return response()->json($responseData);
+}
 
 // UPDATE USER PASSWORD
 public function updatePassword(Request $request)
