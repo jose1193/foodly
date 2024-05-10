@@ -31,63 +31,51 @@ public function __construct()
 
 // USER LOGIN
  // login a user method
-    public function login(LoginRequest $request) {
-    $data = $request->validated();
+    // Método refactorizado de login
+    public function login(LoginRequest $request)
+    {
+        $user = User::where('email', $request->email)->firstOrFail();
 
-    // Validar el formato del correo electrónico
-    $email = filter_var($data['email'], FILTER_VALIDATE_EMAIL);
-    if (!$email) {
+        if (!Hash::check($request->password, $user->password)) {
+            return $this->sendFailedLoginResponse();
+        }
+
+        $token = $this->createTokenForUser($user, $request->filled('remember'));
+        $cookie = $this->createCookieForToken($token);
+
+        return $this->sendSuccessLoginResponse($user, $token)->withCookie($cookie);
+    }
+
+    private function createTokenForUser($user, $remember = false)
+    {
+        $token = $user->createToken('auth_token')->plainTextToken;
+        if ($remember) {
+            $rememberToken = Str::random(60);
+            $user->forceFill(['remember_token' => hash('sha256', $rememberToken)])->save();
+        }
+        return $token;
+    }
+
+    private function createCookieForToken($token)
+    {
+        return cookie('token', $token, 60 * 24 * 365); // 1 year
+    }
+
+    private function sendSuccessLoginResponse($user, $token)
+    {
         return response()->json([
-           'message' => 'Invalid credentials'
-        ], 422);
-    }
-    
-    $user = User::where('email', $data['email'])->first();
-
-    if (!$user || !Hash::check($data['password'], $user->password)) {
-        return response()->json([
-            'message' => 'Invalid credentials'
-        ], 401);
+            'message' => 'User logged successfully',
+            'token' => explode('|', $token)[1],
+            'token_type' => 'Bearer',
+            'token_created_at' => $user->tokens()->where('name', 'auth_token')->first()->created_at->format('Y-m-d H:i:s'),
+            'user' => new UserResource($user),
+        ], 200);
     }
 
-    // Retrieve user roles
-    $userRoles = $user->roles->pluck('name')->all();
-
-    $token = $user->createToken('auth_token')->plainTextToken;
-
-    $cookie = cookie('token', $token, 60 * 24 * 365); // 1 day
-
-    // Add userRoles directly to the user object
-    $user->userRoles = $userRoles;
-
-    // Create the user resource
-    $userResource = new UserResource($user);
-
-    $userObject = $user->toArray();
-
-    if ($request->filled('remember')) {
-        $rememberToken = Str::random(60);
-        $user->forceFill([
-            'remember_token' => hash('sha256', $rememberToken),
-        ])->save();
-
-        $userObject['remember_token'] = $rememberToken;
+    private function sendFailedLoginResponse()
+    {
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
-
-    $userObject['token'] = $token;
-    $tokenCreatedAt = $user->tokens()->where('name', 'auth_token')->first()->created_at;
-    $formattedTokenCreatedAt = $tokenCreatedAt->format('Y-m-d H:i:s');
-
-    return response()->json([
-        'message' => 'User logged successfully',
-        'token' => explode('|', $token)[1],
-        'token_type' => 'Bearer',
-        'token_created_at' => $formattedTokenCreatedAt, 
-        'user' => $userResource,
-        
-        
-    ])->withCookie($cookie);
-}
 
 
 
@@ -214,20 +202,6 @@ public function resetPassword(Request $request)
     return response()->json(['user' => $user->makeVisible('user_role')->toArray(), 'message' => 'Profile successfully updated']);
 }
 
-
-        // GET ALL USERS
-     public function getUsers(Request $request)
-{
-    // Verificar si el usuario tiene permiso para acceder a la lista de usuarios
-    if (!Auth::user()->isAdmin()) {
-        return response()->json(['message' => 'Unauthorized'], 403);
-    }
-
-    // Obtener los usuarios paginados
-    $users = User::paginate();
-
-    return response()->json(['users' => $users], 200);
-}
 
 // REGISTER
 
