@@ -168,6 +168,7 @@
                                 "example": [
                                     {
                                         "uuid": "ID-a1b2c3d4-5e6f-7g8h-9i10",
+                                        "photo": "https://example.com/profile-photo.png",
                                         "name": "John",
                                         "last_name": "Doe",
                                         "username": "john_doe",
