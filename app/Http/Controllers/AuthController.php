@@ -84,7 +84,7 @@ public function __construct()
  // logout a user method
     public function logout(Request $request) {
     try {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->tokens()->delete();
 
         $cookie = cookie()->forget('token');
 
@@ -96,7 +96,7 @@ public function __construct()
             'message' => 'An error occurred while logging out.'
         ], 500);
     }
-}
+    }
 
 
     

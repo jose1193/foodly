@@ -37,8 +37,8 @@ class ProfilePhotoController extends Controller
             }
 
             return response()->json([
-                'user' => ['photo' => $user->profile_photo_url ],
-                'message' => 'Successfully updated profile photo',
+             'photo' => $user->profile_photo_url 
+               
             ]);
         } catch (\Exception $e) {
             // Registrar el error
