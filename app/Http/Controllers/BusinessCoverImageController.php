@@ -15,7 +15,7 @@ use App\Http\Requests\UpdateBusinessCoverImageRequest;
 use App\Helpers\ImageHelper;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use Illuminate\Support\Facades\DB;
 
 class BusinessCoverImageController extends Controller
 {
@@ -27,79 +27,61 @@ class BusinessCoverImageController extends Controller
 
 }
 
-    public function index()
+   public function index()
 {
     try {
-        // Obtener el usuario autenticado con sus negocios y las imágenes de portada relacionadas
         $user = auth()->user()->load('businesses.coverImages');
 
-        // Inicializar un array para almacenar las imágenes de portada agrupadas por nombre de negocio
         $groupedCoverImages = [];
 
-        // Iterar sobre cada negocio del usuario
-        foreach ($user->businesses as $business) {
-            // Obtener el nombre del negocio
-            $businessName = $business->business_name;
-
-            // Verificar si el usuario tiene permiso para acceder a este negocio
-            if ($business->user_id !== $user->id) {
-                continue; // Si no tiene permiso, pasar al siguiente negocio
+        $user->businesses->each(function ($business) use ($user, &$groupedCoverImages) {
+            if ($business->user_id === $user->id) {
+             // Agrupar las imágenes por el nombre del negocio y usar el Resource para la transformación de datos
+                $groupedCoverImages[$business->business_name] = BusinessCoverImageResource::collection($business->coverImages);
             }
+        });
 
-            // Obtener las imágenes de portada del negocio
-            $coverImages = $business->coverImages;
-
-            // Agregar las imágenes de portada al array asociado al nombre del negocio
-            $groupedCoverImages[$businessName] = BusinessCoverImageResource::collection($coverImages);
-        }
-
-        // Devolver todas las imágenes de portada agrupadas por nombre de negocio como respuesta JSON
-        return response()->json(['grouped_business_cover_images' => $groupedCoverImages], 200);
+        return response()->json( $groupedCoverImages, 200);
     } catch (\Exception $e) {
-    // Devolver un mensaje de error detallado en caso de excepción
-    Log::error('Error fetching business cover images: ' . $e->getMessage());
-    return response()->json(['message' => 'Error fetching business cover images: '], 500);
+        Log::error('Error fetching business cover images', [
+            'error' => $e->getMessage(),
+            'user_id' => auth()->id()
+        ]);
+        return response()->json(['message' => 'Error fetching business cover images. Please try again later.'], 500);
     }
-    }
+}
 
 
 
-  public function store(BusinessCoverImageRequest $request)
+
+
+ public function store(BusinessCoverImageRequest $request)
 {
     try {
-        // Validar la solicitud entrante
         $validatedData = $request->validated();
-        $businessImages = [];
 
-        // Almacenar las imágenes de portada del negocio
-        foreach ($validatedData['business_image_path'] as $image) {
-            // Almacenar y redimensionar la imagen
+        $businessImages = collect($validatedData['business_image_path'])->map(function ($image) use ($validatedData) {
             $storedImagePath = ImageHelper::storeAndResize($image, 'public/business_photos');
 
-            // Crear una nueva instancia de BusinessCoverImage y guardarla en la base de datos
             $businessCoverImage = BusinessCoverImage::create([
                 'business_image_path' => $storedImagePath,
                 'business_id' => $validatedData['business_id'],
                 'business_image_uuid' => Uuid::uuid4()->toString(),
             ]);
 
-            // Crear una instancia de BusinessCoverImageResource para la respuesta JSON
-            $businessImages[] = new BusinessCoverImageResource($businessCoverImage);
-        }
+            return new BusinessCoverImageResource($businessCoverImage);
+        });
 
         return response()->json([
             'success' => true,
-            'message' => 'Business cover images stored successfully',
+            //'message' => 'Business cover images stored successfully',
             'business_cover_images' => $businessImages,
-        ], 201);
+        ], 200);
     } catch (\Exception $e) {
-        // En caso de error, devuelve una respuesta de error
-         Log::error('Error storing business cover images: ' . $e->getMessage());
-        return response()->json(['error' => 'Error storing business cover images'], 500);
+        Log::error('Error storing business cover images: ' . $e->getMessage());
+        return response()->json(['error' => 'Error storing business cover images: ' . $e->getMessage()], 500);
     }
 }
-
-
 
 
 public function updateImage(UpdateBusinessCoverImageRequest $request, $uuid)
@@ -108,27 +90,31 @@ public function updateImage(UpdateBusinessCoverImageRequest $request, $uuid)
         $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->firstOrFail();
 
         if ($request->hasFile('business_image_path')) {
-            // Almacenar y redimensionar la nueva imagen
-            $storedImagePath = ImageHelper::storeAndResize($request->file('business_image_path'), 'public/business_photos');
+            DB::transaction(function () use ($request, $businessCoverImage) {
+                // Almacenar y redimensionar la nueva imagen
+                $storedImagePath = ImageHelper::storeAndResize($request->file('business_image_path'), 'public/business_photos');
 
-            // Eliminar la imagen anterior si existe
-            $this->deleteOldImage($businessCoverImage->business_image_path);
+                // Eliminar la imagen anterior si existe
+                if ($businessCoverImage->business_image_path) {
+                    $this->deleteOldImage($businessCoverImage->business_image_path);
+                }
 
-            // Actualizar la ruta de la imagen en el modelo BusinessCoverImage
-            $businessCoverImage->business_image_path = $storedImagePath;
-            $businessCoverImage->save();
+                // Actualizar la ruta de la imagen en el modelo BusinessCoverImage
+                $businessCoverImage->business_image_path = $storedImagePath;
+                $businessCoverImage->save();
+            });
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Business cover image updated successfully',
-            'business_cover_images' => new BusinessCoverImageResource($businessCoverImage)
-        ]);
+        return response()->json(
+           
+            new BusinessCoverImageResource($businessCoverImage)
+        );
     } catch (\Exception $e) {
-        Log::error('Error fetching business cover images: ' . $e->getMessage());
-        return response()->json(['error' => 'Error updating business cover image'], 500);
+        Log::error('Error updating business cover image: ' . $e->getMessage());
+        return response()->json(['error' => 'Error updating business cover image: ' . $e->getMessage()], 500);
     }
 }
+
 
 
 
@@ -143,8 +129,7 @@ private function deleteOldImage($oldImagePath)
 }
 
 
-
-   public function show($uuid)
+public function show($uuid)
 {
     try {
         // Validar el formato del UUID
@@ -152,26 +137,22 @@ private function deleteOldImage($oldImagePath)
             return response()->json(['error' => 'Invalid UUID format'], 400);
         }
 
-        // Encontrar todas las imágenes de portada del negocio por su business_image_uuid
-        $businessCoverImages = BusinessCoverImage::where('business_image_uuid', $uuid)->get();
+        // Intentar encontrar la imagen de portada del negocio por su business_image_uuid
+        $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->firstOrFail();
 
-        // Verificar si se encontraron imágenes de portada del negocio
-        if ($businessCoverImages->isEmpty()) {
-            return response()->json(['message' => 'Business cover images not found'], 404);
-        }
+        // Crear un recurso para la imagen de portada del negocio
+        $businessCoverImageResource = new BusinessCoverImageResource($businessCoverImage);
 
-        // Crear una colección de recursos para las imágenes de portada del negocio
-        $businessCoverImagesResources = BusinessCoverImageResource::collection($businessCoverImages);
-
-        // Devolver la colección de recursos de imágenes de portada del negocio bajo la clave 'images'
-        return response()->json(['images' => $businessCoverImagesResources]);
+        // Devolver el recurso de la imagen de portada del negocio
+        return response()->json($businessCoverImageResource);
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        return response()->json(['message' => 'Business cover images not found'], 404);
+        return response()->json(['message' => 'Business cover image not found'], 404);
     } catch (\Exception $e) {
-        Log::error('Error retrieving business cover images: ' . $e->getMessage());
-        return response()->json(['error' => 'Error retrieving business cover images'], 500);
+        Log::error('Error retrieving business cover image: ' . $e->getMessage());
+        return response()->json(['error' => 'Error retrieving business cover image: ' . $e->getMessage()], 500);
     }
 }
+
 
 
 
@@ -189,31 +170,36 @@ private function deleteOldImage($oldImagePath)
 
 
     
-   public function destroy($uuid)
+ public function destroy($uuid)
 {
+    if (!Uuid::isValid($uuid)) {
+        return response()->json(['error' => 'Invalid UUID format'], 400);
+    }
+
     try {
-        // Intentar encontrar la imagen de portada del negocio por su ID
         $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->firstOrFail();
-
-        // Eliminar la imagen del almacenamiento
-        $pathWithoutAppPublic = str_replace('storage/app/public/', '', $businessCoverImage->business_image_path);
-        if (Storage::disk('public')->exists($pathWithoutAppPublic)) {
-            Storage::disk('public')->delete($pathWithoutAppPublic);
-        }
-
-        // Eliminar el modelo de la base de datos
+        $this->deleteFileFromStorage($businessCoverImage->business_image_path);
         $businessCoverImage->delete();
 
-        return response()->json(['message' => 'Business cover image deleted successfully']);
+        // Correctly place the status code as the second parameter
+        return response()->json(['message' => 'Business cover image deleted successfully'], 200);
     } catch (ModelNotFoundException $e) {
-        // Manejar el caso donde la imagen de portada del negocio no fue encontrada
         return response()->json(['message' => 'Business cover image not found'], 404);
     } catch (\Exception $e) {
-        // Manejar cualquier otro error y devolver una respuesta de error
-        Log::error('Error retrieving business cover images: ' . $e->getMessage());
-        return response()->json(['message' => 'Error deleting business cover image '], 500);
+        Log::error('Error deleting business cover image: ' . $e->getMessage());
+        return response()->json(['error' => 'Error deleting business cover image: ' . $e->getMessage()], 500);
     }
 }
+
+
+protected function deleteFileFromStorage($filePath)
+{
+    $path = str_replace('storage/app/public/', '', $filePath);
+    if (Storage::disk('public')->exists($path)) {
+        Storage::disk('public')->delete($path);
+    }
+}
+
 
 
    
