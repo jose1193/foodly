@@ -61,7 +61,7 @@ class CreateUserController extends Controller
             'token_type' => 'Bearer',
             'token_created_at' => $tokenData['created_at'],
             'user' => new UserResource($user)
-        ], 201);
+        ], 200);
 
     } catch (\Exception $e) {
         // Revertir todos los cambios en caso de error.
@@ -73,7 +73,7 @@ class CreateUserController extends Controller
 private function handleUserProfilePhoto(CreateUserRequest $request, User $user)
 {
     if ($request->hasFile('photo')) {
-        $photoPath = ImageHelper::storeAndResize($request->file('photo'), 'public/profile-photos');
+        $photoPath = ImageHelper::storeAndResizeProfilePhoto($request->file('photo'), 'public/profile-photos');
         // Asegurarse de que la foto solo se asigne si se ha guardado correctamente.
         if ($photoPath) {
             $user->update(['profile_photo_path' => $photoPath]);
