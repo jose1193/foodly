@@ -24,12 +24,13 @@ class BusinessCoverImageRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
     public function rules(): array
-    {
-        return [
-            'business_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048',
-            'business_id' => 'required|exists:businesses,id',
-        ];
-    }
+{
+    return [
+        'business_image_path' => 'required',
+        'business_image_path.*' => 'image|mimes:jpeg,png,jpg,gif|max:10048', // Validación para cada archivo si es un array
+        'business_id' => 'required|exists:businesses,id',
+    ];
+}
 
 public function failedValidation(Validator $validator)
 

@@ -25,9 +25,11 @@ class BusinessBranchCoverImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_image_path.*' => 'required|image|mimes:jpeg,png,jpg,gif|max:10048',
-            'branch_id' => 'required|exists:business_branches,id',
-        ];
+        'branch_image_path' => 'required',
+        'branch_image_path.*' => 'image|mimes:jpeg,png,jpg,gif|max:10048', // Validación para cada archivo si es un array
+        'branch_id' => 'required|exists:business_branches,id',
+    ];
+
     }
 
     public function failedValidation(Validator $validator)

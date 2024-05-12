@@ -55,21 +55,27 @@ class BusinessCoverImageController extends Controller
 
 
 
- public function store(BusinessCoverImageRequest $request)
+  public function store(BusinessCoverImageRequest $request)
 {
     DB::beginTransaction(); // Start the transaction
     try {
         $validatedData = $request->validated();
 
-        $businessImages = collect($validatedData['business_image_path'])->map(function ($image) use ($validatedData) {
+        // Verify and adjust the format of business_image_path
+        $imagePaths = $validatedData['business_image_path'];
+        if (!is_array($imagePaths)) {
+            $imagePaths = [$imagePaths];  // Convert to array if not already
+        }
+
+        $businessImages = collect($imagePaths)->map(function ($image) use ($validatedData) {
             $storedImagePath = ImageHelper::storeAndResize($image, 'public/business_photos');
 
-            $businessCoverImage = BusinessCoverImage::create([
+            return BusinessCoverImage::create([
                 'business_image_path' => $storedImagePath,
                 'business_id' => $validatedData['business_id'],
                 'business_image_uuid' => Uuid::uuid4()->toString(),
             ]);
-
+        })->map(function ($businessCoverImage) {
             return new BusinessCoverImageResource($businessCoverImage);
         });
 
@@ -82,6 +88,9 @@ class BusinessCoverImageController extends Controller
         return response()->json(['error' => 'Error storing business cover images: ' . $e->getMessage()], 500);
     }
 }
+
+
+
 
 
 

@@ -66,43 +66,48 @@ public function index()
     
 public function store(BusinessBranchCoverImageRequest $request)
 {
-    DB::beginTransaction();  // Iniciar transacción
+    DB::beginTransaction();  // Start the transaction
     try {
         $userId = Auth::id();
         $validatedData = $request->validated();
 
+        // Retrieve the user's business IDs and check if the branch ID is valid
         $userBusinesses = Business::where('user_id', $userId)->pluck('id');
         if (!$userBusinesses->contains($validatedData['branch_id'])) {
             return response()->json(['error' => 'Invalid branch ID.'], 400);
         }
 
-        $branchImages = [];
-        foreach ($validatedData['branch_image_path'] as $image) {
-            if ($image->isValid()) { // Asegurar que el archivo es válido
+        // Ensure branch_image_path is an array
+        $branchImages = $validatedData['branch_image_path'];
+        if (!is_array($branchImages)) {
+            $branchImages = [$branchImages];  // Convert to array if not already
+        }
+
+        $branchCoverImages = collect($branchImages)->map(function ($image) use ($validatedData) {
+            if ($image->isValid()) { // Ensure the file is valid
                 $storedImagePath = ImageHelper::storeAndResize($image, 'public/branch_photos');
 
-                $branchCoverImage = BranchCoverImage::create([
+                return BranchCoverImage::create([
                     'branch_image_path' => $storedImagePath,
                     'branch_id' => $validatedData['branch_id'],
                     'branch_image_uuid' => Uuid::uuid4()->toString(),
                 ]);
-
-                $branchImages[] = new BusinessBranchCoverImageResource($branchCoverImage);
             } else {
                 throw new \Exception("Invalid image file.");
             }
-        }
+        })->map(function ($branchCoverImage) {
+            return new BusinessBranchCoverImageResource($branchCoverImage);
+        });
 
-        DB::commit();  // Confirmar transacción
-        return response()->json(
-            $branchImages,200
-        );
+        DB::commit();  // Commit the transaction
+        return response()->json($branchCoverImages, 200);
     } catch (\Exception $e) {
-        DB::rollBack();  // Revertir transacción en caso de error
+        DB::rollBack();  // Roll back the transaction in case of failure
         Log::error('An error occurred while storing branch cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error storing branch cover images'], 500);
     }
 }
+
 
 
 
