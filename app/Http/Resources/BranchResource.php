@@ -43,9 +43,10 @@ class BranchResource extends JsonResource
             'branch_latitude' => $this->branch_latitude,
             'branch_longitude' => $this->branch_longitude,
             'business_id' => $this->business_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'deleted_at' => $this->deleted_at,
+            'created_at' => $this->created_at ? $this->created_at->toDateTimeString() : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->toDateTimeString() : null,
+            'deleted_at' => $this->deleted_at ? $this->deleted_at->toDateTimeString() : null,
+
             'branch_cover_images' => $cover_images,
         ];
     }

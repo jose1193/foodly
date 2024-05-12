@@ -18,9 +18,11 @@ class BusinessCoverImageResource extends JsonResource
             'id' => $this->id,
             'business_image_uuid' => $this->business_image_uuid,
             'business_image_path' => asset($this->business_image_path),
-            'business_id' => $this->business_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'business_id' => $this->business->id,
+            'created_at' => $this->created_at ? $this->created_at->toDateTimeString() : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->toDateTimeString() : null,
+
+
             //'business' => $this->business,
         ];
     }

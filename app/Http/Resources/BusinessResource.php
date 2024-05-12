@@ -63,9 +63,10 @@ class BusinessResource extends JsonResource
         'business_latitude' => $this->business_latitude,
         'business_longitude' => $this->business_longitude,
         'category_id' => $this->category_id,
-        'created_at' => $this->created_at,
-        'updated_at' => $this->updated_at,
-        'deleted_at' => $this->deleted_at,
+        'created_at' => $this->created_at ? $this->created_at->toDateTimeString() : null,
+        'updated_at' => $this->updated_at ? $this->updated_at->toDateTimeString() : null,
+        'deleted_at' => $this->deleted_at ? $this->deleted_at->toDateTimeString() : null,
+
         'cover_images' => $cover_images,
         'branches' => $branches,
     ];
