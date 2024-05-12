@@ -1438,7 +1438,7 @@
                                         "category_name": "Cocina Internacional",
                                         "category_description": "Producto",
                                         "category_image_path": "https://example.com/icono-cocina.png",
-                                        "user_id": 1
+                                        "user_id": "1"
                                     },
                                     {
                                         "id": 2,
@@ -1446,7 +1446,7 @@
                                         "category_name": "Cocina Portuguesa",
                                         "category_description": "Producto",
                                         "category_image_path": "https://example.com/icono-cocina.png",
-                                        "user_id": 1
+                                        "user_id": "1"
                                     }
                                 ]
                             }
@@ -1571,7 +1571,7 @@
                                     "category_name": "Cocina Internacional",
                                     "category_description": "Producto",
                                     "category_image_path": "https://example.com/icono-cocina.png",
-                                    "user_id": 1
+                                    "user_id": "1"
                                 }
                             }
                         }
@@ -1668,7 +1668,7 @@
                                     "category_name": "Cocina Internacional",
                                     "category_description": "Producto",
                                     "category_image_path": "https://example.com/icono-cocina.png",
-                                    "user_id": 1
+                                    "user_id": "1"
                                 }
                             }
                         }
@@ -1705,14 +1705,14 @@
                                         "subcategory_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                         "subcategory_name": "Vinos",
                                         "subcategory_description": "Platos deliciosos de todo el mundo",
-                                        "category_id": 1
+                                        "category_id": "1"
                                     },
                                     {
                                         "id": 2,
                                         "subcategory_uuid": "123504e0-4f89-41d3-9a0c-0305e82c3301",
                                         "subcategory_name": "Postres Exquisitos",
                                         "subcategory_description": "Dulces y postres irresistibles",
-                                        "category_id": 2
+                                        "category_id": "2"
                                     }
                                 ]
                             }
@@ -1844,7 +1844,7 @@
                                     "subcategory_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                     "subcategory_name": "Vinos",
                                     "subcategory_description": "Producto",
-                                    "category_id": 1
+                                    "category_id": "1"
                                 }
                             }
                         }
@@ -1894,7 +1894,7 @@
                                     "subcategory_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                     "subcategory_name": "Vinos",
                                     "subcategory_description": "Producto",
-                                    "category_id": 1
+                                    "category_id": "1"
                                 }
                             }
                         }
@@ -1940,7 +1940,7 @@
                                         "business_website": "https://www.restauranteinternacional.com",
                                         "business_latitude": 123.456,
                                         "business_longitude": -78.91,
-                                        "category_id": 1
+                                        "category_id": "1"
                                     },
                                     {
                                         "id": 2,
@@ -1958,7 +1958,7 @@
                                         "business_opening_date": "2023-10-15",
                                         "business_latitude": 12.345,
                                         "business_longitude": -67.89,
-                                        "category_id": 2
+                                        "category_id": "2"
                                     }
                                 ]
                             }
@@ -2084,7 +2084,7 @@
                             "application/json": {
                                 "example": {
                                     "id": 1,
-                                    "user_id": 1,
+                                    "user_id": "1",
                                     "business_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
                                     "business_logo": "https://example.com/business_logo.png",
                                     "business_name": "Restaurante Internacional",
@@ -2238,7 +2238,7 @@
                             "application/json": {
                                 "example": {
                                     "id": 1,
-                                    "user_id": 1,
+                                    "user_id": "1",
                                     "business_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
                                     "business_logo": "https://example.com/business_logo.png",
                                     "business_name": "Restaurante Internacional",
@@ -2293,7 +2293,7 @@
                                         "id": 2,
                                         "business_image_uuid": "892504e0-4f89-41d3-9a0c-0305e82c3301",
                                         "business_image_path": "https://example.com/business_cover2.png",
-                                        "business_id": 2
+                                        "business_id": "2"
                                     }
                                 ]
                             }
@@ -2318,7 +2318,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/businesscoverimagesstore_body"
+                                "$ref": "#/components/schemas/BusinessCoverImagesRegistration"
                             }
                         }
                     },
@@ -2372,7 +2372,7 @@
                                     "id": 1,
                                     "business_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                     "business_image_path": "https://example.com/business_cover.png",
-                                    "business_id": 1
+                                    "business_id": "1"
                                 }
                             }
                         }
@@ -2467,7 +2467,7 @@
                                     "id": 1,
                                     "business_image_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
                                     "business_image_path": "/path/to/the/example.png",
-                                    "business_id": 1
+                                    "business_id": "1"
                                 }
                             }
                         }
@@ -2513,9 +2513,9 @@
                                         "branch_website": "https://www.cafeteriadelpueblo.com",
                                         "branch_latitude": 78.91,
                                         "branch_longitude": -12.345,
-                                        "business_id": 1,
+                                        "business_id": "1",
                                         "business": {
-                                            "id": 1,
+                                            "id": "1",
                                             "business_uuid": "d84e7fa6-9171-4ba1-bd2a-3e8322ae4c53",
                                             "business_logo": "https://example.com/branch_logo.png",
                                             "business_name": "Restaurante Italiano Bella Vista",
@@ -2546,9 +2546,9 @@
                                         "branch_website": "https://www.bardelmar.com",
                                         "branch_latitude": -12.345,
                                         "branch_longitude": 67.89,
-                                        "business_id": 2,
+                                        "business_id": "2",
                                         "business": {
-                                            "id": 1,
+                                            "id": "1",
                                             "business_uuid": "75f75413-5bea-4f50-b530-7f500f4cf8f9",
                                             "business_logo": "https://example.com/another_business_logo.png",
                                             "business_name": "Café de la Plaza",
@@ -2702,9 +2702,9 @@
                                         "branch_website": "https://www.cafeteriadelpueblo.com",
                                         "branch_latitude": 78.91,
                                         "branch_longitude": -12.345,
-                                        "business_id": 1,
+                                        "business_id": "1",
                                         "business": {
-                                            "id": 1,
+                                            "id": "1",
                                             "business_uuid": "d84e7fa6-9171-4ba1-bd2a-3e8322ae4c53",
                                             "business_logo": "https://example.com/business_logo.png",
                                             "business_name": "Restaurante Italiano Bella Vista",
@@ -2898,13 +2898,13 @@
                                         "id": 1,
                                         "branch_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                         "branch_image_path": "https://example.com/branch_cover.png",
-                                        "branch_id": 1
+                                        "branch_id": "1"
                                     },
                                     {
                                         "id": 2,
                                         "branch_image_uuid": "892504e0-4f89-41d3-9a0c-0305e82c3301",
                                         "branch_image_path": "https://example.com/branch_cover2.png",
-                                        "branch_id": 2
+                                        "branch_id": "2"
                                     }
                                 ]
                             }
@@ -2983,7 +2983,7 @@
                                     "id": 1,
                                     "branch_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                     "branch_image_path": "https://example.com/branch_cover.png",
-                                    "branch_id": 1
+                                    "branch_id": "1"
                                 }
                             }
                         }
@@ -3078,7 +3078,7 @@
                                     "id": 1,
                                     "branch_image_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
                                     "branch_image_path": "/path/to/the/example.png",
-                                    "branch_id": 1
+                                    "branch_id": "1"
                                 }
                             }
                         }
@@ -3212,8 +3212,7 @@
                                         "promotion_start_date": "2024-06-15",
                                         "promotion_end_date": "2024-08-31",
                                         "promotion_type": "Descuento",
-                                        "promotion_status": "Active",
-                                        "business_id": 1
+                                        "promotion_status": "Active"
                                     }
                                 ]
                             }
@@ -3359,8 +3358,7 @@
                                         "promotion_start_date": "2024-06-15",
                                         "promotion_end_date": "2024-08-31",
                                         "promotion_type": "Descuento",
-                                        "promotion_status": "Active",
-                                        "business_id": 1
+                                        "promotion_status": "Active"
                                     }
                                 ]
                             }
@@ -3397,13 +3395,13 @@
                                         "id": 1,
                                         "promotion_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                         "promotion_image_path": "https://example.com/business_promotion.png",
-                                        "promotion_id": 1
+                                        "promotion_id": "1"
                                     },
                                     {
                                         "id": 2,
                                         "promotion_image_uuid": "892504e0-4f89-41d3-9a0c-0305e82c3301",
                                         "promotion_image_path": "https://example.com/business_promotion2.png",
-                                        "promotion_id": 2
+                                        "promotion_id": "2"
                                     }
                                 ]
                             }
@@ -3482,7 +3480,7 @@
                                     "id": 1,
                                     "branch_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                     "branch_image_path": "https://example.com/business_promotion_cover.png",
-                                    "branch_id": 1
+                                    "branch_id": "1"
                                 }
                             }
                         }
@@ -3607,8 +3605,7 @@
                                         "promotion_branch_start_date": "2024-06-15",
                                         "promotion_branch_end_date": "2024-08-31",
                                         "promotion_branch_type": "Descuento",
-                                        "promotion_branch_status": "Active",
-                                        "branch_id": 1
+                                        "promotion_branch_status": "Active"
                                     },
                                     {
                                         "id": 2,
@@ -3618,8 +3615,7 @@
                                         "promotion_branch_start_date": "2024-07-20",
                                         "promotion_branch_end_date": "2024-07-22",
                                         "promotion_branch_type": "Oferta Especial",
-                                        "promotion_branch_status": "Active",
-                                        "branch_id": 2
+                                        "promotion_branch_status": "Active"
                                     }
                                 ]
                             }
@@ -3703,8 +3699,7 @@
                                         "promotion_branch_start_date": "2024-06-15",
                                         "promotion_branch_end_date": "2024-08-31",
                                         "promotion_branch_type": "Descuento",
-                                        "promotion_branch_status": "Active",
-                                        "branch_id": 1
+                                        "promotion_branch_status": "Active"
                                     }
                                 ]
                             }
@@ -3850,8 +3845,7 @@
                                         "promotion_branch_start_date": "2024-06-15",
                                         "promotion_branch_end_date": "2024-08-31",
                                         "promotion_branch_type": "Descuento",
-                                        "promotion_branch_status": "Active",
-                                        "branch_id": 1
+                                        "promotion_branch_status": "Active"
                                     }
                                 ]
                             }
@@ -3894,7 +3888,7 @@
                                         "id": 2,
                                         "promotion_branch_image_uuid": "892504e0-4f89-41d3-9a0c-0305e82c3301",
                                         "promotion_branch_image_path": "https://example.com/promotion_branch2.png",
-                                        "promotion_branch_id": 2
+                                        "promotion_branch_id": "2"
                                     }
                                 ]
                             }
@@ -3973,7 +3967,7 @@
                                     "id": 1,
                                     "branch_branch_image_uuid": "3f2504e0-4f89-41d3-9a0c-0305e82c3301",
                                     "promotion_branch_image_path": "https://example.com/promotion_branch_cover.png",
-                                    "promotion_branch_id": 1
+                                    "promotion_branch_id": "1"
                                 }
                             }
                         }
@@ -4593,6 +4587,22 @@
                     }
                 }
             },
+            "BusinessCoverImagesRegistration": {
+                "type": "object",
+                "properties": {
+                    "business_image_path": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "binary"
+                        }
+                    },
+                    "business_id": {
+                        "type": "integer",
+                        "description": "Id of the business"
+                    }
+                }
+            },
             "BranchCoverImagesRegistration": {
                 "type": "object",
                 "properties": {
@@ -4899,23 +4909,6 @@
                     },
                     "new_password": {
                         "type": "string"
-                    }
-                }
-            },
-            "businesscoverimagesstore_body": {
-                "required": ["business_id", "business_image_path"],
-                "type": "object",
-                "properties": {
-                    "business_image_path": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "binary"
-                        }
-                    },
-                    "business_id": {
-                        "type": "integer",
-                        "description": "ID of the business"
                     }
                 }
             }
