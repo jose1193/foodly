@@ -12,8 +12,22 @@ class BranchResource extends JsonResource
      *
      * @return array<string, mixed>
      */
+
+    
     public function toArray(Request $request): array
     {
+        $cover_images = $this->coverImages()->exists() ? $this->coverImages->map(function ($image) {
+        return [
+            'id' => $image->id,
+            'branch_image_uuid' => $image->branch_image_uuid,
+            'branch_image_path' => asset($image->branch_image_path),
+            'branch_id' => $image->branch_id,
+            'created_at' => $image->created_at->toDateTimeString(),  
+            'updated_at' => $image->updated_at->toDateTimeString(),
+        ];
+    })->toArray() : [];
+
+
         return [
             'branch_id' => $this->id,
             'branch_uuid' => $this->branch_uuid,
@@ -32,7 +46,7 @@ class BranchResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
-            //'business' => $this->business,
+            'branch_cover_images' => $cover_images,
         ];
     }
 }
