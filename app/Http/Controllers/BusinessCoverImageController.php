@@ -57,6 +57,7 @@ class BusinessCoverImageController extends Controller
 
  public function store(BusinessCoverImageRequest $request)
 {
+    DB::beginTransaction(); // Start the transaction
     try {
         $validatedData = $request->validated();
 
@@ -72,16 +73,16 @@ class BusinessCoverImageController extends Controller
             return new BusinessCoverImageResource($businessCoverImage);
         });
 
-        return response()->json([
-            'success' => true,
-            //'message' => 'Business cover images stored successfully',
-            'business_cover_images' => $businessImages,
-        ], 200);
+        DB::commit(); // Confirm the transaction if everything went well
+
+        return response()->json($businessImages, 200);
     } catch (\Exception $e) {
+        DB::rollBack(); // Reverse the transaction in case of failure
         Log::error('Error storing business cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error storing business cover images: ' . $e->getMessage()], 500);
     }
 }
+
 
 
 public function updateImage(UpdateBusinessCoverImageRequest $request, $uuid)
@@ -117,9 +118,6 @@ public function updateImage(UpdateBusinessCoverImageRequest $request, $uuid)
 
 
 
-
-
-
 private function deleteOldImage($oldImagePath)
 {
     if ($oldImagePath) {
@@ -128,34 +126,26 @@ private function deleteOldImage($oldImagePath)
     }
 }
 
-
 public function show($uuid)
 {
     try {
-        // Validar el formato del UUID
+        // Validate the UUID format
         if (!Uuid::isValid($uuid)) {
             return response()->json(['error' => 'Invalid UUID format'], 400);
         }
 
-        // Intentar encontrar la imagen de portada del negocio por su business_image_uuid
+        // Attempt to find the business cover image by its business_image_uuid
         $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->firstOrFail();
 
-        // Crear un recurso para la imagen de portada del negocio
-        $businessCoverImageResource = new BusinessCoverImageResource($businessCoverImage);
-
-        // Devolver el recurso de la imagen de portada del negocio
-        return response()->json($businessCoverImageResource);
+        // Return the business cover image resource
+        return response()->json(new BusinessCoverImageResource($businessCoverImage));
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        return response()->json(['message' => 'Business cover image not found'], 404);
+        return response()->json(['error' => 'Business cover image not found'], 404);
     } catch (\Exception $e) {
         Log::error('Error retrieving business cover image: ' . $e->getMessage());
-        return response()->json(['error' => 'Error retrieving business cover image: ' . $e->getMessage()], 500);
+        return response()->json(['error' => 'Server error while retrieving business cover image'], 500);
     }
 }
-
-
-
-
 
 
 
@@ -177,20 +167,24 @@ public function show($uuid)
     }
 
     try {
+        DB::beginTransaction();
+
         $businessCoverImage = BusinessCoverImage::where('business_image_uuid', $uuid)->firstOrFail();
         $this->deleteFileFromStorage($businessCoverImage->business_image_path);
         $businessCoverImage->delete();
 
-        // Correctly place the status code as the second parameter
+        DB::commit();
+
         return response()->json(['message' => 'Business cover image deleted successfully'], 200);
     } catch (ModelNotFoundException $e) {
+        DB::rollBack();
         return response()->json(['message' => 'Business cover image not found'], 404);
     } catch (\Exception $e) {
+        DB::rollBack();
         Log::error('Error deleting business cover image: ' . $e->getMessage());
         return response()->json(['error' => 'Error deleting business cover image: ' . $e->getMessage()], 500);
     }
 }
-
 
 protected function deleteFileFromStorage($filePath)
 {

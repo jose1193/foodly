@@ -43,7 +43,7 @@ class Business extends Model
         return $this->hasMany(BusinessCoverImage::class, 'business_id');
     }
 
-    public function businessBranch()
+    public function branches()
     {
         return $this->hasMany(BusinessBranch::class, 'business_id');
     }

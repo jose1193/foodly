@@ -45,7 +45,7 @@ class UserResource extends JsonResource {
                 'id' => $image->id,
                 'business_id' => $image->business_id,
                 'business_image_uuid' => $image->business_image_uuid,
-                'business_image_path' => $image->business_image_path,
+                'business_image_path' => asset($image->business_image_path),
                 // Incluir otros atributos de la imagen si los hay
             ];
         })->toArray();
@@ -57,7 +57,7 @@ class UserResource extends JsonResource {
                 return [
                     'id' => $image->id,
                     'promotion_image_uuid' => $image->promotion_image_uuid,
-                    'promotion_image_path' => $image->promotion_image_path,
+                    'promotion_image_path' => asset($image->promotion_image_path),
                     'promotion_id' => $image->promotion_id,
                 ];
             })->toArray();
@@ -77,13 +77,13 @@ class UserResource extends JsonResource {
         })->toArray();
 
         // Incluir las sucursales de los negocios
-        $branch = $business->businessBranch->isNotEmpty() ? $business->businessBranch : [];
+        $branch = $business->branches->isNotEmpty() ? $business->branches : [];
 
         return [
             'id' => $business->id,
             'user_id' => $business->user_id,
             'business_uuid' => $business->business_uuid,
-            'business_logo' => $business->business_logo,
+            'business_logo' => asset($business->business_logo),
             'business_name' => $business->business_name,
             'business_email' => $business->business_email,
             'business_phone' => $business->business_phone,

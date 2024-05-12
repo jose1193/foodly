@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Helpers\ImageHelper;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class BranchCoverImageController extends Controller
 {
@@ -30,41 +31,32 @@ class BranchCoverImageController extends Controller
      * Display a listing of the resource.
      */
    
-
 public function index()
 {
     try {
-        // Obtener el ID del usuario autenticado
-        $userId = Auth::id();
+        // Obtener el usuario autenticado con negocios y sus sucursales con imágenes de portada cargadas de antemano
+        $user = Auth::user()->load('businesses.branches.coverImages');
 
-        // Obtener las sucursales asociadas a los negocios del usuario
-        $businessBranches = BusinessBranch::whereHas('business', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })->with('coverImages')->get();
-
-        // Inicializar un array para almacenar las imágenes de portada agrupadas por sucursal
+        // Preparar un array para almacenar las imágenes de portada agrupadas por sucursal
         $groupedCoverImages = [];
 
-        // Iterar sobre las sucursales y agrupar las imágenes de portada por sucursal
-        foreach ($businessBranches as $branch) {
-            // Obtener el nombre de la sucursal
-            $branchName = $branch->branch_name; // Ajusta el nombre del atributo según la estructura de tu modelo
-            // Agregar las imágenes de portada al array asociado a la sucursal utilizando el nombre como clave
-            $groupedCoverImages[$branchName] = BusinessBranchCoverImageResource::collection($branch->coverImages);
+        // Iterar sobre los negocios y sus sucursales para agrupar las imágenes de portada
+        foreach ($user->businesses as $business) {
+            foreach ($business->branches as $branch) {
+                // Usar el nombre de la sucursal como clave para agrupar las imágenes de portada
+                $branchName = $branch->branch_name; // Asegúrate de que 'branch_name' es el atributo correcto
+                $groupedCoverImages[$branchName] = BusinessBranchCoverImageResource::collection($branch->coverImages);
+            }
         }
 
         // Devolver una respuesta JSON con las imágenes de portada agrupadas por sucursal
-        return response()->json(['grouped_branch_cover_images' => $groupedCoverImages]);
+        return response()->json($groupedCoverImages);
     } catch (\Exception $e) {
-    // Manejar cualquier excepción que ocurra durante el proceso y registrar el mensaje de error
-    Log::error('An error occurred while grouping branch cover images: ' . $e->getMessage());
-    return response()->json(['message' => 'An error occurred: '], 500);
+        // Registrar y manejar cualquier excepción que ocurra durante el proceso
+        Log::error('Error in index function: ' . $e->getMessage());
+        return response()->json(['message' => 'An error occurred during processing'], 500);
     }
-    }
-
-
-
-
+}
 
 
 
@@ -74,44 +66,39 @@ public function index()
     
 public function store(BusinessBranchCoverImageRequest $request)
 {
+    DB::beginTransaction();  // Iniciar transacción
     try {
-        // Obtener el ID del usuario autenticado
         $userId = Auth::id();
-
-        // Validar la solicitud entrante
         $validatedData = $request->validated();
-        $branchImages = [];
 
-        // Buscar todos los negocios asociados al usuario autenticado
         $userBusinesses = Business::where('user_id', $userId)->pluck('id');
-
-        // Verificar si el branch_id pertenece a uno de los negocios del usuario
         if (!$userBusinesses->contains($validatedData['branch_id'])) {
-            return response()->json(['error' => 'The provided branch ID does not belong to any business associated with the authenticated user'], 400);
+            return response()->json(['error' => 'Invalid branch ID.'], 400);
         }
 
-        // Almacenar las imágenes de portada del negocio
+        $branchImages = [];
         foreach ($validatedData['branch_image_path'] as $image) {
-            // Almacenar y redimensionar la imagen
-            $storedImagePath = ImageHelper::storeAndResize($image, 'public/branch_photos');
+            if ($image->isValid()) { // Asegurar que el archivo es válido
+                $storedImagePath = ImageHelper::storeAndResize($image, 'public/branch_photos');
 
-            // Crear una nueva instancia de BranchCoverImage y guardarla en la base de datos
-            $branchCoverImage = BranchCoverImage::create([
-                'branch_image_path' => $storedImagePath,
-                'branch_id' => $validatedData['branch_id'],
-                'branch_image_uuid' => Uuid::uuid4()->toString(),
-            ]);
+                $branchCoverImage = BranchCoverImage::create([
+                    'branch_image_path' => $storedImagePath,
+                    'branch_id' => $validatedData['branch_id'],
+                    'branch_image_uuid' => Uuid::uuid4()->toString(),
+                ]);
 
-            // Crear una instancia de BusinessBranchCoverImageResource para la respuesta JSON
-            $branchImages[] = new BusinessBranchCoverImageResource($branchCoverImage);
+                $branchImages[] = new BusinessBranchCoverImageResource($branchCoverImage);
+            } else {
+                throw new \Exception("Invalid image file.");
+            }
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Branch cover images stored successfully',
-            'branch_cover_images' => $branchImages,
-        ]);
+        DB::commit();  // Confirmar transacción
+        return response()->json(
+            $branchImages,200
+        );
     } catch (\Exception $e) {
+        DB::rollBack();  // Revertir transacción en caso de error
         Log::error('An error occurred while storing branch cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error storing branch cover images'], 500);
     }
@@ -121,28 +108,31 @@ public function store(BusinessBranchCoverImageRequest $request)
 
 public function updateImage(UpdateBusinessBranchCoverImageRequest $request, $uuid)
 {
+    DB::beginTransaction(); // Iniciar transacción
     try {
         $branchCoverImage = BranchCoverImage::where('branch_image_uuid', $uuid)->firstOrFail();
 
         if ($request->hasFile('branch_image_path')) {
-            // Almacenar y redimensionar la nueva imagen
-            $storedImagePath = ImageHelper::storeAndResize($request->file('branch_image_path'), 'public/branch_photos');
-            
-            // Eliminar la imagen anterior si existe
-            $this->deleteOldImage($branchCoverImage->branch_image_path);
+            $storedImagePath = ImageHelper::storeAndResize(
+                $request->file('branch_image_path'), 
+                'public/branch_photos'
+            );
 
-            // Actualizar la ruta de la imagen en el modelo BranchCoverImage
-            $branchCoverImage->branch_image_path = $storedImagePath;
-            $branchCoverImage->save();
+            if ($branchCoverImage->branch_image_path) {
+                $this->deleteOldImage($branchCoverImage->branch_image_path);
+            }
+
+            $branchCoverImage->update([
+                'branch_image_path' => $storedImagePath
+            ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Branch cover image updated successfully',
-            'branch_cover_images' => new BusinessBranchCoverImageResource($branchCoverImage)
-        ]);
+        DB::commit(); // Confirmar cambios si todo es correcto
+
+        return response()->json(new BusinessBranchCoverImageResource($branchCoverImage));
     } catch (\Exception $e) {
-         Log::error('An error occurred while updating branch cover images: ' . $e->getMessage());
+        DB::rollBack(); // Revertir todos los cambios en caso de error
+        Log::error('An error occurred while updating branch cover images: ' . $e->getMessage());
         return response()->json(['error' => 'Error updating business cover image'], 500);
     }
 }
@@ -161,20 +151,30 @@ private function deleteOldImage($oldImagePath)
     /**
      * Display the specified resource.
      */
-    public function show($uuid)
+   public function show($uuid)
 {
+    // Validate the UUID format
+    if (!Uuid::isValid($uuid)) {
+        return response()->json(['error' => 'Invalid UUID format'], 400);
+    }
+
     try {
-        // Encontrar la imagen de portada de la sucursal por su branch_image_uuid
+        // Find the branch cover image by its branch_image_uuid
         $branchCoverImage = BranchCoverImage::where('branch_image_uuid', $uuid)->firstOrFail();
 
-        // Devolver la imagen de portada de la sucursal
-        return response()->json(['branch_image' => $branchCoverImage]);
+        // Return the branch cover image
+         return response()->json(new BusinessBranchCoverImageResource($branchCoverImage));
+        
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Handle the exception and return an error response if the image is not found
+        return response()->json(['message' => 'Branch cover image not found'], 404);
     } catch (\Exception $e) {
-        // Manejar la excepción y devolver una respuesta de error
-         Log::error('Failed to retrieve branch cover image: ' . $e->getMessage());
+        // Handle any other exceptions and log the error
+        Log::error('Failed to retrieve branch cover image: ' . $e->getMessage());
         return response()->json(['message' => 'Failed to retrieve branch cover image'], 500);
     }
 }
+
 
 
     /**
@@ -192,26 +192,42 @@ private function deleteOldImage($oldImagePath)
     /**
      * Remove the specified resource from storage.
      */
+
      public function destroy($uuid)
 {
-    // Intentar encontrar la imagen de portada del negocio por su ID
-    $branchCoverImage = BranchCoverImage::where('branch_image_uuid', $uuid)->first();
-
-    // Verificar si la imagen de portada del negocio fue encontrada
-    if (!$branchCoverImage) {
-        return response()->json(['message' => 'Branch cover image not found'], 404);
+    if (!Uuid::isValid($uuid)) {
+        return response()->json(['error' => 'Invalid UUID format'], 400);
     }
 
-    // Eliminar la imagen del almacenamiento
-    $pathWithoutAppPublic = str_replace('storage/app/public/', '', $branchCoverImage->branch_image_path);
-    if (Storage::disk('public')->exists($pathWithoutAppPublic)) {
-        Storage::disk('public')->delete($pathWithoutAppPublic);
+    try {
+        DB::beginTransaction();
+
+        $branchCoverImage = BranchCoverImage::where('branch_image_uuid', $uuid)->firstOrFail();
+        $this->deleteBranchCoverImage($branchCoverImage->branch_image_path);
+        $branchCoverImage->delete();
+
+        DB::commit();
+
+        return response()->json(['message' => 'Branch cover image deleted successfully'], 200);
+    } catch (ModelNotFoundException $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Failed to delete branch cover image'], 404);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Error deleting branch cover image: ' . $e->getMessage());
+        return response()->json(['error' => 'Error deleting branch cover image: ' . $e->getMessage()], 500);
     }
-
-    // Eliminar el modelo de la base de datos
-    $branchCoverImage->delete();
-
-    return response()->json(['message' => 'Branch cover image deleted successfully']);
 }
+
+
+protected function deleteBranchCoverImage($filePath)
+{
+    $path = str_replace('storage/app/public/', '', $filePath);
+    if (Storage::disk('public')->exists($path)) {
+        Storage::disk('public')->delete($path);
+    }
+}
+
+
 
 }
