@@ -22,8 +22,12 @@ class Business extends Model
         'business_city',
         'business_country',
         'business_website',
+        'business_about_us',
+        'business_services',
+        'business_additional_info',
         'business_latitude',
         'business_longitude',
+        
         'category_id',
         'user_id'
     ];

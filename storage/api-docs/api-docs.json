@@ -1938,6 +1938,9 @@
                                         "business_city": "Ciudad Principal",
                                         "business_country": "País Principal",
                                         "business_website": "https://www.restauranteinternacional.com",
+                                        "business_about_us": "Acerca de",
+                                        "business_services": "Servicios",
+                                        "business_additional_info": "Información Adicional",
                                         "business_latitude": 123.456,
                                         "business_longitude": -78.91,
                                         "category_id": 1
@@ -1954,6 +1957,9 @@
                                         "business_city": "Ciudad del Centro",
                                         "business_country": "País Principal",
                                         "business_website": "https://www.cafeteriadelcentro.com",
+                                        "business_about_us": "Acerca de",
+                                        "business_services": "Servicios",
+                                        "business_additional_info": "Información Adicional",
                                         "business_opening_hours": "Lun-Vie: 07:00-20:00, Sáb-Dom: 08:00-18:00",
                                         "business_opening_date": "2023-10-15",
                                         "business_latitude": 12.345,
@@ -2095,6 +2101,9 @@
                                     "business_city": "Ciudad Principal",
                                     "business_country": "País Principal",
                                     "business_website": "https://www.restauranteinternacional.com",
+                                    "business_about_us": "Acerca de",
+                                    "business_services": "Servicios",
+                                    "business_additional_info": "Información Adicional",
                                     "business_latitude": 123.456,
                                     "business_longitude": -78.91,
                                     "category_id": "Cocina Portuguesa"
@@ -2249,6 +2258,9 @@
                                     "business_city": "Ciudad Principal",
                                     "business_country": "País Principal",
                                     "business_website": "https://www.restauranteinternacional.com",
+                                    "business_about_us": "Acerca de",
+                                    "business_services": "Servicios",
+                                    "business_additional_info": "Información Adicional",
                                     "business_latitude": 123.456,
                                     "business_longitude": -78.91,
                                     "category_id": 1
@@ -4478,6 +4490,18 @@
                         "type": "string",
                         "description": "Website of the business"
                     },
+                    "business_about_us": {
+                        "type": "string",
+                        "description": "About of the business"
+                    },
+                    "business_services": {
+                        "type": "string",
+                        "description": "Services of the business"
+                    },
+                    "business_additional_info": {
+                        "type": "string",
+                        "description": "Additional Information of the business"
+                    },
                     "business_latitude": {
                         "type": "number",
                         "description": "Latitude of the business",
@@ -4580,6 +4604,15 @@
                         "type": "string"
                     },
                     "business_website": {
+                        "type": "string"
+                    },
+                    "business_about_us": {
+                        "type": "string"
+                    },
+                    "business_services": {
+                        "type": "string"
+                    },
+                    "business_additional_info": {
                         "type": "string"
                     },
                     "business_latitude": {
