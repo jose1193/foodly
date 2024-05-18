@@ -24,14 +24,18 @@ class PromotionBranchRequest extends FormRequest
      */
     public function rules(): array
     {
+         // Determine if the current route is 'api/branch-promotions-store'
+        $isStoreRoute = $this->is('api/branch-promotions-store');
+
         return [
-            'promotion_branch_title' => 'required|string|min:3|max:255',
+            'promotion_branch_title' => ($isStoreRoute ? 'required|' : '') . 'string|min:3|max:255',
             'promotion_branch_description' => 'nullable|min:3|string|max:255',
             'promotion_branch_start_date' => 'nullable|min:3|string|max:50',
             'promotion_branch_end_date' => 'nullable|min:3|string|max:50',
             'promotion_branch_type' => 'nullable|string|min:3|string|max:50',
             'promotion_branch_status' => 'nullable|string|min:3|string|max:50',
-            'branch_id' => 'required|exists:business_branches,id',
+            'branch_id' => ($isStoreRoute ? 'required|' : '') . 'exists:businesses,id',
+            
         ];
     }
 

@@ -23,6 +23,9 @@ class BranchRequest extends FormRequest
      */
     public function rules(): array
     {
+         // Determine if the current route is 'api/branch-store'
+        $isStoreRoute = $this->is('api/branch-store');
+
         return [
             
             'branch_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10048',
@@ -36,7 +39,8 @@ class BranchRequest extends FormRequest
             'branch_website' => 'nullable|string',
             'branch_latitude' => 'nullable',
             'branch_longitude' => 'nullable',
-            'business_id' => 'required|exists:businesses,id',
+            'business_id' => ($isStoreRoute ? 'required|' : '') . 'exists:businesses,id',
+            
         ];
     }
 

@@ -24,14 +24,17 @@ class PromotionRequest extends FormRequest
      */
     public function rules(): array
     {
+         // Determine if the current route is 'api/promotions-store'
+        $isStoreRoute = $this->is('api/promotions-store');
+
         return [
-            'promotion_title' => 'required|string|min:3|max:255',
+            'promotion_title' => ($isStoreRoute ? 'required|' : '') . 'string|min:3|max:255',
             'promotion_description' => 'nullable|min:3|string|max:255',
             'promotion_start_date' => 'nullable|min:3|string|max:50',
             'promotion_end_date' => 'nullable|min:3|string|max:50',
             'promotion_type' => 'nullable|string|min:3|string|max:50',
             'promotion_status' => 'nullable|string|min:3|string|max:50',
-            'business_id' => 'required|exists:businesses,id',
+            'business_id' => ($isStoreRoute ? 'required|' : '') . 'exists:businesses,id',
         ];
     }
 

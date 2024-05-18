@@ -23,9 +23,11 @@ class BusinessRequest extends FormRequest
      */
     public function rules(): array
     {
-        
+        // Determine if the current route is 'api/business-store'
+        $isStoreRoute = $this->is('api/business-store');
+
         return [
-            'business_name' => 'required|string|min:3|max:255',
+            'business_name' => ($isStoreRoute ? 'required|' : '') . 'string|min:3|max:255',
             'business_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5048',
             'business_email' => 'nullable|email',
             'business_phone' => 'nullable|string|min:5|max:50',
@@ -39,39 +41,34 @@ class BusinessRequest extends FormRequest
             'business_about_us' => 'nullable',
             'business_services' => 'nullable',
             'business_additional_info' => 'nullable',
-            'category_id' => 'required|exists:categories,id',
-            
-            
+            'category_id' => ($isStoreRoute ? 'required|' : '') . 'exists:categories,id',
         ];
     }
 
-
+    /**
+     * Handle a failed validation attempt.
+     *
+     * @param  \Illuminate\Contracts\Validation\Validator  $validator
+     * @return void
+     */
     public function failedValidation(Validator $validator)
-
     {
-
         throw new HttpResponseException(response()->json([
-
             'success'   => false,
-
             'message'   => 'Validation errors',
-
-            'errors'      => $validator->errors()
-
+            'errors'    => $validator->errors()
         ], 422));
-
     }
 
-
-    
-    public function messages()
-{
-    return [
-        
-        'user_id.exists' => 'The specified user does not exist.',
-        
-    ];
-}
-
-
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array
+     */
+    public function messages(): array
+    {
+        return [
+            'category_id.exists' => 'The specified category does not exist.',
+        ];
+    }
 }
