@@ -97,8 +97,8 @@ class UserResource extends JsonResource {
             'business_additional_info' => $business->business_additional_info,
             'business_latitude' => $business->business_latitude,
             'business_longitude' => $business->business_longitude,
-            'category_id' => $business->category_id,
-            'category' => $business->category,
+            'category' => $business->category ? $business->category : null,
+            
             'business_cover_images' => $coverImages,
             'business_promotions' => $promotions, 
             'business_branch' => $branch,
