@@ -22,12 +22,11 @@ class PromotionBranchResource extends JsonResource
             'promotion_branch_end_date' => $this->promotion_branch_end_date,
             'promotion_branch_type' => $this->promotion_branch_type,
             'promotion_branch_status' => $this->promotion_branch_status,
-            'branch_id' => $this->branch_id,
+            'branch_id' => $this->branches ? $this->branches->branch_id : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'delete_at' => $this->delete_at,
-            
-            //'branch' => new BranchResource($this->branches), // Aquí anidamos el recurso Business
+            'promotions_branches_images' => new PromotionBranchImageResource($this->promotionBranchesImages), 
         ];
     }
 }

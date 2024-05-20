@@ -18,7 +18,7 @@ class PromotionBranchImageResource extends JsonResource
             'id' => $this->id,
             'promotion_branch_image_uuid' => $this->promotion_branch_image_uuid,
             'promotion_branch_image_path' => asset($this->promotion_branch_image_path),
-            'promotion_branch_id' => $this->promotion_branch_id,
+            'promotion_branch_id' => $this->promotionBranch->promotion_branch_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
            

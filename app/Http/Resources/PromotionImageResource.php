@@ -18,7 +18,7 @@ class PromotionImageResource extends JsonResource
             'id' => $this->id,
             'promotion_image_uuid' => $this->promotion_image_uuid,
             'promotion_image_path' => asset($this->promotion_image_path),
-            'promotion_id' => $this->promotion_id,
+            'promotion_id' => $this->promotion->id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
            

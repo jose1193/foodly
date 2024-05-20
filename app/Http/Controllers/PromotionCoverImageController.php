@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
 use App\Helpers\ImageHelper;
-
+use Illuminate\Support\Facades\DB;
 class PromotionCoverImageController extends Controller
 {
     // PERMISSIONS USERS
