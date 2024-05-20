@@ -49,15 +49,15 @@ class BusinessController extends Controller
         }
 
         // Devolver los negocios encontrados como respuesta JSON, incluidos los eliminados
-        return response()->json(['businesses' => BusinessResource::collection($businesses)], 200);
+        return response()->json(['business' => BusinessResource::collection($businesses)], 200);
     } catch (QueryException $e) {
     // Manejar errores de consulta SQL y registrar el error
     Log::error('Database error: ' . $e->getMessage());
     return response()->json(['message' => 'Database error: ' . $e->getMessage()], 500);
 } catch (\Exception $e) {
     // Manejar cualquier otra excepción que ocurra durante el proceso y registrar el error
-    Log::error('Error retrieving businesses: ' . $e->getMessage());
-    return response()->json(['message' => 'Error retrieving businesses'], 500);
+    Log::error('Error retrieving business: ' . $e->getMessage());
+    return response()->json(['message' => 'Error retrieving business'], 500);
 }
 }
 
@@ -105,7 +105,7 @@ public function store(BusinessRequest $request)
             Mail::to($business->user->email)->queue(new WelcomeMailBusiness($business->user, $business));
 
             // Devolver una respuesta adecuada
-            return response()->json(['business' => new BusinessResource($business)], 200);
+            return response()->json( new BusinessResource($business), 200);
         });
     } catch (\Exception $exception) {
         // Manejo específico de excepciones fuera de la transacción

@@ -27,8 +27,8 @@ class PromotionResource extends JsonResource
             'created_at' => $this->created_at ? $this->created_at->toDateTimeString() : null,
             'updated_at' => $this->updated_at ? $this->updated_at->toDateTimeString() : null,
             'deleted_at' => $this->deleted_at ? $this->deleted_at->toDateTimeString() : null,
-            'promotions_images' => new PromotionImageResource($this->promotionImages), // Aquí anidamos el recurso Branch
-            //'business' => new BusinessResource($this->business), // Aquí anidamos el recurso Business
+            //'promotions_images' => new PromotionImageResource($this->promotionImages), // Aquí anidamos el recurso Branch
+            'business' => new BusinessResource($this->business), // Aquí anidamos el recurso Business
         ];
     }
 }

@@ -47,6 +47,7 @@ class BusinessResource extends JsonResource
         ];
     })->toArray() : [];
 
+    
     return [
         'user_id' => $this->user_id,
         'business_id' => $this->id,
@@ -60,9 +61,6 @@ class BusinessResource extends JsonResource
         'business_city' => $this->business_city,
         'business_country' => $this->business_country,
         'business_website' => $this->business_website,
-        'business_about_us' => $this->business_about_us,
-        'business_services' => $this->business_services,
-        'business_additional_info' => $this->business_additional_info,
         'business_latitude' => $this->business_latitude,
         'business_longitude' => $this->business_longitude,
         'category_id' => $this->category ? $this->category->id : null,

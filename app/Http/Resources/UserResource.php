@@ -37,7 +37,7 @@ class UserResource extends JsonResource {
         ];
 
         // Include the user's businesses
-        $data['businesses'] = $this->businesses->map(function ($business) {
+        $data['business'] = $this->businesses->map(function ($business) {
             // Include business cover images
             $coverImages = $business->coverImages->map(function ($image) {
                 return [
@@ -148,7 +148,7 @@ class UserResource extends JsonResource {
                 'business_latitude' => $business->business_latitude,
                 'business_longitude' => $business->business_longitude,
                 'category' => $business->category ? $business->category : null,
-                'business_cover_images' => $coverImages,
+                'cover_images' => $coverImages,
                 'business_promotions' => $promotions,
                 'business_branches' => $branches,
             ];

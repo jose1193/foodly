@@ -28,26 +28,25 @@ class PromotionController extends Controller
    public function index()
 {
     try {
-        // Cargar eficientemente las relaciones necesarias
-        $user = auth()->user()->with('businesses.promotions')->firstOrFail();
+        // Obtener el ID del usuario autenticado
+        $userId = Auth::id();
 
-        // Recopilar todas las promociones asociadas a los negocios del usuario
-        $allPromotions = $user->businesses->flatMap(function ($business) {
-            return $business->promotions;
-        });
+        // Obtener todos los negocios asociados al usuario autenticado
+        $businesses = User::findOrFail($userId)->businesses;
+
+        // Inicializar una colección vacía para almacenar todas las promociones
+        $allPromotions = collect();
+
+        // Iterar sobre cada negocio y obtener las promociones asociadas a cada uno
+        foreach ($businesses as $business) {
+            $businessId = $business->id;
+            $promotions = Promotion::withTrashed()->where('business_id', $businessId)->get();
+            $allPromotions = $allPromotions->concat($promotions);
+        }
 
         // Devolver todas las promociones como respuesta JSON
         return response()->json(['promotions' => PromotionResource::collection($allPromotions)], 200);
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        // Si no se encuentra el usuario o los datos relacionados
-        return response()->json(['message' => 'User or data not found'], 404);
-    } catch (\Illuminate\Database\QueryException $e) {
-        // Manejar errores de consulta SQL específicamente
-        Log::error('Database error while fetching promotions: ' . $e->getMessage());
-        return response()->json(['message' => 'Database error'], 500);
     } catch (\Exception $e) {
-        // Manejar cualquier otra excepción que ocurra durante el proceso
-        Log::error('Error fetching promotions: ' . $e->getMessage());
         return response()->json(['message' => 'Error fetching promotions'], 500);
     }
 }
