@@ -56,20 +56,25 @@ class BusinessResource extends JsonResource
         'business_name' => $this->business_name,
         'business_email' => $this->business_email,
         'business_phone' => $this->business_phone,
+        'business_about_us' => $this->business_about_us,
+        'business_services' => $this->business_services,
+        'business_additional_info' => $this->business_additional_info,
         'business_address' => $this->business_address,
         'business_zipcode' => $this->business_zipcode,
         'business_city' => $this->business_city,
         'business_country' => $this->business_country,
         'business_website' => $this->business_website,
-        'business_latitude' => $this->business_latitude,
-        'business_longitude' => $this->business_longitude,
+        'business_latitude' => (double) $this->business_latitude,
+        'business_longitude' => (double) $this->business_longitude,
+        'business_website' => $this->business_website,
         'category_id' => $this->category ? $this->category->id : null,
+        'category' => $this->category ? $this->category : null,
         'created_at' => $this->created_at ? $this->created_at->toDateTimeString() : null,
         'updated_at' => $this->updated_at ? $this->updated_at->toDateTimeString() : null,
         'deleted_at' => $this->deleted_at ? $this->deleted_at->toDateTimeString() : null,
 
         'cover_images' => $cover_images,
-        'branches' => $branches,
+        'business_branches' => $branches,
     ];
 }
 

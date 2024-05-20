@@ -89,7 +89,7 @@ public function store(BranchRequest $request)
 
         DB::commit(); // Confirmar la transacción
 
-        return response()->json(['message' => 'Business Branch created successfully', 'business_branch' => new BranchResource($businessBranch)], 201);
+        return response()->json(new BranchResource($businessBranch), 201);
     } catch (\Exception $e) {
         DB::rollback(); // Revertir la transacción en caso de error
         Log::error('Error storing branch: ' . $e->getMessage());
