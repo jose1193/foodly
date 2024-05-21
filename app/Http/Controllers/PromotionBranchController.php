@@ -35,15 +35,16 @@ class PromotionBranchController extends Controller
 
         // Obtener todas las promociones de las sucursales asociadas a los negocios del usuario autenticado
         $promotionsBranches = Business::where('user_id', $userId)
-            ->with('businessBranch.promotionsbranches')
+            ->with('branches.promotionsbranches')
             ->get()
-            ->pluck('businessBranch')
+            ->pluck('branches')
             ->flatten()
             ->pluck('promotionsbranches')
             ->flatten();
 
         // Devolver todas las promociones como respuesta JSON
-        return response()->json(['branch_promotions' => $promotionsBranches], 200);
+        return response()->json(['branch_promotions' => PromotionBranchResource::collection($promotionsBranches)], 200);
+        
     } catch (\Exception $e) {
     Log::error('Error fetching promotions branch: ' . $e->getMessage());
     return response()->json(['message' => 'Error fetching promotions branch: '], 500);

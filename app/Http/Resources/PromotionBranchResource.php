@@ -26,7 +26,8 @@ class PromotionBranchResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'delete_at' => $this->delete_at,
-            'promotions_branches_images' => new PromotionBranchImageResource($this->promotionBranchesImages), 
+            'business_branch' => new BranchResource($this->branches),
+            'promotions_branches_images' => PromotionBranchImageResource::collection($this->promotionBranchesImages), 
         ];
     }
 }

@@ -36,7 +36,7 @@ class PromotionBranchImageController extends Controller
         $userId = auth()->id();
 
         // Obtener todos los negocios asociados al usuario autenticado usando relaciones
-        $user = User::with('businesses.businessBranch.promotionsbranches.promotionBranchesImages')->findOrFail($userId);
+        $user = User::with('businesses.branches.promotionsbranches.promotionBranchesImages')->findOrFail($userId);
 
         // Inicializar un array para almacenar las imágenes de promoción agrupadas por nombre de sucursal
         $groupedPromotionImages = [];
@@ -44,7 +44,7 @@ class PromotionBranchImageController extends Controller
         // Iterar sobre cada negocio y obtener las imágenes de promoción asociadas a cada sucursal
         foreach ($user->businesses as $business) {
             // Iterar sobre cada sucursal y obtener las promociones y sus imágenes asociadas
-            foreach ($business->businessBranch as $branch) {
+            foreach ($business->branches as $branch) {
                 $branchName = $branch->branch_name;
 
                 $promotionImages = [];
