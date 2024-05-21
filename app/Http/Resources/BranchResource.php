@@ -29,7 +29,7 @@ class BranchResource extends JsonResource
 
 
         return [
-            'branch_id' => $this->id,
+            'id' => $this->id,
             'branch_uuid' => $this->branch_uuid,
             'branch_logo' => asset($this->branch_logo),
             'branch_name' => $this->branch_name,

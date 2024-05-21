@@ -40,8 +40,8 @@ class PromotionResource extends JsonResource
             //];
             //})->toArray(),
             'business' => [
+            'id' => $this->business->id,
             'user_id' => $this->business->user_id,
-            'business_id' => $this->business->id,
             'business_uuid' => $this->business->business_uuid,
             'business_logo' => $this->business->business_logo ? asset($this->business->business_logo) : null,
             'business_name' => $this->business->business_name,

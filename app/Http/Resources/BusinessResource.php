@@ -49,8 +49,8 @@ class BusinessResource extends JsonResource
 
     
     return [
+        'id' => $this->id,
         'user_id' => $this->user_id,
-        'business_id' => $this->id,
         'business_uuid' => $this->business_uuid,
         'business_logo' => asset($this->business_logo),
         'business_name' => $this->business_name,
