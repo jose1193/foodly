@@ -22,7 +22,7 @@ class PromotionBranchResource extends JsonResource
             'promotion_branch_end_date' => $this->promotion_branch_end_date,
             'promotion_branch_type' => $this->promotion_branch_type,
             'promotion_branch_status' => $this->promotion_branch_status,
-            'branch_id' => $this->branches ? $this->branches->branch_id : null,
+            'branch_id' => (int) $this->branch_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'delete_at' => $this->delete_at,
