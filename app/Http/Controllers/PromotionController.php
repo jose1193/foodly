@@ -45,7 +45,7 @@ class PromotionController extends Controller
         }
 
         // Devolver todas las promociones como respuesta JSON
-        return response()->json(['promotions' => PromotionResource::collection($allPromotions)], 200);
+        return response()->json(['business_promotions' => PromotionResource::collection($allPromotions)], 200);
     } catch (\Exception $e) {
         return response()->json(['message' => 'Error fetching promotions'], 500);
     }
