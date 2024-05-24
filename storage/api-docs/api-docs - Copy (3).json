@@ -57,10 +57,6 @@
             "description": "Subcategories Crud Foodly"
         },
         {
-            "name": "Services",
-            "description": "Services Crud Foodly"
-        },
-        {
             "name": "Business",
             "description": "Business Users Foodly"
         },
@@ -1627,7 +1623,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Category Image updated successfully"
+                        "description": "Business Logo updated successfully"
                     },
                     "401": {
                         "description": "(Unauthorized) No authorization to call the service"
@@ -1646,7 +1642,7 @@
         "/categories-delete/{uuid}": {
             "delete": {
                 "tags": ["Categories"],
-                "summary": "Delete a Category by UUID",
+                "summary": "Get a Category by UUID",
                 "parameters": [
                     {
                         "name": "uuid",
@@ -1920,274 +1916,6 @@
                 ]
             }
         },
-        "/services": {
-            "get": {
-                "tags": ["Services"],
-                "summary": "Get all Registered Services",
-                "responses": {
-                    "200": {
-                        "description": "List of Registered Services",
-                        "content": {
-                            "application/json": {
-                                "example": [
-                                    {
-                                        "id": 1,
-                                        "service_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-                                        "service_name": "Wifi",
-                                        "service_description": "Descripción",
-                                        "service_image_path": "https://example.com/icono-wifi.png",
-                                        "user_id": 1
-                                    },
-                                    {
-                                        "id": 2,
-                                        "service_uuid": "787ac10b-58cc-4372-a567-0e02b2c3d969",
-                                        "service_name": "Take Away",
-                                        "service_description": "Descripción",
-                                        "service_image_path": "https://example.com/icono-take-away.png",
-                                        "user_id": 1
-                                    }
-                                ]
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                }
-            }
-        },
-        "/services/store": {
-            "post": {
-                "tags": ["Services"],
-                "summary": "Store a new Service",
-                "requestBody": {
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ServicesRegistration"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Service created successfully"
-                    },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
-                    },
-                    "422": {
-                        "description": "(Unprocessable Entity) Validation failed"
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/services/{uuid}": {
-            "get": {
-                "tags": ["Services"],
-                "summary": "Get a Service by UUID",
-                "parameters": [
-                    {
-                        "name": "uuid",
-                        "in": "path",
-                        "description": "UUID of the service to retrieve",
-                        "required": true,
-                        "style": "simple",
-                        "explode": false,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Service details retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "id": 1,
-                                    "service_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-                                    "service_name": "Wifi",
-                                    "service_description": "Descripción",
-                                    "service_image_path": "https://example.com/icono-wifi.png",
-                                    "user_id": 1
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
-                    },
-                    "404": {
-                        "description": "(NotFound) No information found"
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/services/update/{uuid}": {
-            "patch": {
-                "tags": ["Services"],
-                "summary": "Update a Service by UUID",
-                "parameters": [
-                    {
-                        "name": "uuid",
-                        "in": "path",
-                        "description": "UUID of the service to retrieve",
-                        "required": true,
-                        "style": "simple",
-                        "explode": false,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UpdateServices"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Service updated successfully"
-                    },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
-                    },
-                    "404": {
-                        "description": "(NotFound) No information found"
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/services/update-images/{uuid}": {
-            "post": {
-                "tags": ["Services"],
-                "summary": "Update Service Images",
-                "parameters": [
-                    {
-                        "name": "uuid",
-                        "in": "path",
-                        "description": "UUID of the service to retrieve",
-                        "required": true,
-                        "style": "simple",
-                        "explode": false,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UpdateServiceImage"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "description": "Service Image updated successfully"
-                    },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/services/delete/{uuid}": {
-            "delete": {
-                "tags": ["Services"],
-                "summary": "Delete a Service by UUID",
-                "parameters": [
-                    {
-                        "name": "uuid",
-                        "in": "path",
-                        "description": "UUID of the service to retrieve",
-                        "required": true,
-                        "style": "simple",
-                        "explode": false,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Service successfully removed",
-                        "content": {
-                            "application/json": {
-                                "example": {
-                                    "id": 1,
-                                    "category_uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-                                    "category_name": "Cocina Internacional",
-                                    "category_description": "Producto",
-                                    "category_image_path": "https://example.com/icono-cocina.png",
-                                    "user_id": 1
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "(Unauthorized) No authorization to call the service"
-                    },
-                    "404": {
-                        "description": "(NotFound) No information found"
-                    },
-                    "500": {
-                        "description": "Server error"
-                    }
-                },
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ]
-            }
-        },
         "/business": {
             "get": {
                 "tags": ["Business"],
@@ -2211,10 +1939,7 @@
                                         "business_country": "País Principal",
                                         "business_website": "https://www.restauranteinternacional.com",
                                         "business_about_us": "Acerca de",
-                                        "business_services": [
-                                            "Servicio 1",
-                                            "Servicio 2"
-                                        ],
+                                        "business_services": "Servicios",
                                         "business_additional_info": "Información Adicional",
                                         "business_latitude": 123.456,
                                         "business_longitude": -78.91,
@@ -2233,10 +1958,7 @@
                                         "business_country": "País Principal",
                                         "business_website": "https://www.cafeteriadelcentro.com",
                                         "business_about_us": "Acerca de",
-                                        "business_services": [
-                                            "Servicio 1",
-                                            "Servicio 2"
-                                        ],
+                                        "business_services": "Servicios",
                                         "business_additional_info": "Información Adicional",
                                         "business_opening_hours": "Lun-Vie: 07:00-20:00, Sáb-Dom: 08:00-18:00",
                                         "business_opening_date": "2023-10-15",
@@ -2380,10 +2102,7 @@
                                     "business_country": "País Principal",
                                     "business_website": "https://www.restauranteinternacional.com",
                                     "business_about_us": "Acerca de",
-                                    "business_services": [
-                                        "Servicio 1",
-                                        "Servicio 2"
-                                    ],
+                                    "business_services": "Servicios",
                                     "business_additional_info": "Información Adicional",
                                     "business_latitude": 123.456,
                                     "business_longitude": -78.91,
@@ -2540,10 +2259,7 @@
                                     "business_country": "País Principal",
                                     "business_website": "https://www.restauranteinternacional.com",
                                     "business_about_us": "Acerca de",
-                                    "business_services": [
-                                        "Servicio 1",
-                                        "Servicio 2"
-                                    ],
+                                    "business_services": "Servicios",
                                     "business_additional_info": "Información Adicional",
                                     "business_latitude": 123.456,
                                     "business_longitude": -78.91,
@@ -4707,17 +4423,6 @@
                     }
                 }
             },
-            "UpdateServices": {
-                "type": "object",
-                "properties": {
-                    "service_name": {
-                        "type": "string"
-                    },
-                    "service_description": {
-                        "type": "string"
-                    }
-                }
-            },
             "SubcategoriesRegistration": {
                 "type": "object",
                 "properties": {
@@ -4790,11 +4495,8 @@
                         "description": "About of the business"
                     },
                     "business_services": {
-                        "type": "array",
-                        "description": "Services of the business",
-                        "items": {
-                            "type": "integer"
-                        }
+                        "type": "string",
+                        "description": "Services of the business"
                     },
                     "business_additional_info": {
                         "type": "string",
@@ -4908,11 +4610,7 @@
                         "type": "string"
                     },
                     "business_services": {
-                        "type": "array",
-                        "description": "Services of the business",
-                        "items": {
-                            "type": "integer"
-                        }
+                        "type": "string"
                     },
                     "business_additional_info": {
                         "type": "string"
@@ -4959,15 +4657,6 @@
                 "type": "object",
                 "properties": {
                     "category_image_path": {
-                        "type": "string",
-                        "format": "binary"
-                    }
-                }
-            },
-            "UpdateServiceImage": {
-                "type": "object",
-                "properties": {
-                    "service_image_path": {
                         "type": "string",
                         "format": "binary"
                     }
@@ -5236,24 +4925,6 @@
                     }
                 }
             },
-            "ServicesRegistration": {
-                "type": "object",
-                "properties": {
-                    "service_name": {
-                        "type": "string",
-                        "description": "Name of the service"
-                    },
-                    "service_description": {
-                        "type": "string",
-                        "description": "Description of the service"
-                    },
-                    "service_image_path": {
-                        "type": "string",
-                        "description": "Service Image of the category",
-                        "format": "binary"
-                    }
-                }
-            },
             "updatepassword_body": {
                 "required": ["current_password", "new_password"],
                 "type": "object",
@@ -5346,18 +5017,6 @@
                 "name": "uuid",
                 "in": "path",
                 "description": "UUID of the category to retrieve",
-                "required": true,
-                "style": "simple",
-                "explode": false,
-                "schema": {
-                    "type": "string",
-                    "format": "uuid"
-                }
-            },
-            "ServiceId": {
-                "name": "uuid",
-                "in": "path",
-                "description": "UUID of the service to retrieve",
                 "required": true,
                 "style": "simple",
                 "explode": false,

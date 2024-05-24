@@ -39,7 +39,10 @@ class BusinessRequest extends FormRequest
             'business_latitude' => 'nullable', 
             'business_longitude' => 'nullable',
             'business_about_us' => 'nullable',
-            'business_services' => 'nullable',
+            'business_services' => 'nullable|array',
+            'business_services.*' => 'nullable|integer|exists:services,id',
+
+
             'business_additional_info' => 'nullable',
             'category_id' => ($isStoreRoute ? 'required|' : '') . 'exists:categories,id',
         ];

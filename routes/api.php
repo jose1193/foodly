@@ -27,7 +27,7 @@ use App\Http\Controllers\PromotionBranchImageController;
 use App\Http\Controllers\SocialLoginController;
 use App\Http\Controllers\CreateUserController;
 use App\Http\Controllers\PasswordResetUserController;
-
+use App\Http\Controllers\ServiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -63,6 +63,8 @@ Route::controller(PasswordResetUserController::class)->group(function () {
     Route::post('/reset-password', 'updatePassword');  
     // Aquí puedes agregar más rutas relacionadas con el restablecimiento de contraseña si lo necesitas
 });
+
+Route::get('/services', [ServiceController::class, 'index']);
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
    
@@ -191,7 +193,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::delete('/branch-promotions-images-delete/{uuid}', [PromotionBranchImageController::class, 'destroy']);
     Route::post('/branch-promotions-images-update/{uuid}', [PromotionBranchImageController::class, 'updateImage']);
     
-    
+    Route::prefix('services')->group(function () {
+    Route::post('/store', [ServiceController::class, 'store']); 
+    Route::get('/{uuid}', [ServiceController::class, 'show']); 
+    Route::patch('/update/{uuid}', [ServiceController::class, 'update']); 
+    Route::post('/update-images/{uuid}/', [ServiceController::class, 'updateImage']); 
+    Route::delete('delete/{uuid}', [ServiceController::class, 'destroy']); 
+    });
+
+
 });
 
 //Route::fallback([ErrorController::class, 'notFound']);

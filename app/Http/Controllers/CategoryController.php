@@ -14,7 +14,7 @@ use App\Http\Requests\UpdateCategoryImageRequest;
 use Illuminate\Support\Facades\Log;
 use App\Helpers\ImageHelper;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -73,10 +73,7 @@ private function handleCategoryImage($request, $category)
 
 private function successfulResponse($category)
 {
-    return response()->json([
-        'message' => 'Category created successfully',
-        'categories' => new CategoryResource($category)
-    ], 200);
+    return response()->json(new CategoryResource($category), 200);
 }
 
 private function errorResponse()
@@ -85,42 +82,46 @@ private function errorResponse()
 }
 
 
-
-
 public function updateImage(UpdateCategoryImageRequest $request, $uuid)
 {
-    try {
-        $category = Category::where('category_uuid', $uuid)->firstOrFail();
+    return DB::transaction(function () use ($request, $uuid) {
+        try {
+            $category = Category::where('category_uuid', $uuid)->firstOrFail();
 
-        // Guardar la imagen si está presente
-        if ($request->hasFile('category_image_path')) {
+            // Guardar la imagen si está presente
+            if ($request->hasFile('category_image_path')) {
             // Obtener el archivo de imagen
             $image = $request->file('category_image_path');
 
             // Eliminar la imagen anterior si existe
             if ($category->category_image_path) {
-                $pathWithoutAppPublic = str_replace('storage/app/public/', '', $category->category_image_path);
-                Storage::disk('public')->delete($pathWithoutAppPublic);
+                $this->deleteImage($category->category_image_path);
             }
 
-            // Guardar y redimensionar la nueva imagen utilizando ImageHelper
+            // Guardar la nueva imagen y obtener la ruta
             $photoPath = ImageHelper::storeAndResize($image, 'public/categories_images');
 
-            // Actualizar la ruta de la imagen en el modelo Category
-            $category->category_image_path = 'storage/app/' . $photoPath;
+            // Actualizar la ruta de la imagen en el modelo Business
+            $category->category_image_path = $photoPath;
             $category->save();
         }
 
-        // Devolver el recurso actualizado
-        
-        return response()->json( new CategoryResource($category), 200);
-       
-    } catch (\Exception $e) {
-    // Manejar el error y registrar el mensaje de error si es necesario
-    Log::error('Error updating category image: ' . $e->getMessage());
-    return response()->json(['error' => 'Error updating category image'], 500);
-    }
-    }
+            // Devolver el recurso actualizado
+            return response()->json(new CategoryResource($category), 200);
+        } catch (\Throwable $e) {
+            // Manejar el error y registrar el mensaje de error si es necesario
+            Log::error('Error updating service image: ' . $e->getMessage());
+            return response()->json(['error' => 'Error updating service image'], 500);
+        }
+    });
+}
+
+private function deleteImage($imagePath)
+{
+    // Eliminar la imagen
+    $pathWithoutAppPublic = str_replace('storage/app/public/', '', $imagePath);
+    Storage::disk('public')->delete($pathWithoutAppPublic);
+}
 
 
 

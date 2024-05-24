@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use App\Models\User;
 use App\Models\Category;
+use App\Models\Service;
 use Ramsey\Uuid\Uuid;
 
 class DatabaseSeeder extends Seeder
@@ -125,6 +126,30 @@ class DatabaseSeeder extends Seeder
         }
         // END CATEGORIAS
 
+        // CATEGORIAS
+   $services = [
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Wifi', 'service_description' => 'Descripción de Wifi', 'service_image_path' => 'storage/app/public/services_images/wifi.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Multilenguage', 'service_description' => 'Descripción de Multilenguage', 'service_image_path' => 'storage/app/public/services_images/multilenguage.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Kid Chairs', 'service_description' => 'Descripción de Kid Chairs', 'service_image_path' => 'storage/app/public/services_images/kid_chairs.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Baby Changing St..', 'service_description' => 'Descripción de Baby Changing St..', 'service_image_path' => 'storage/app/public/services_images/baby_changing_st.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Kids Play Area', 'service_description' => 'Descripción de Kids Play Area', 'service_image_path' => 'storage/app/public/services_images/kids_play_area.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Accesible', 'service_description' => 'Descripción de Accesible', 'service_image_path' => 'storage/app/public/services_images/accesible.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'PMR', 'service_description' => 'Descripción de PMR', 'service_image_path' => 'storage/app/public/services_images/pmr.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Delivery', 'service_description' => 'Descripción de Delivery', 'service_image_path' => 'storage/app/public/services_images/delivery.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Take Away', 'service_description' => 'Descripción de Take Away', 'service_image_path' => 'storage/app/public/services_images/take_away.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Smoking Area', 'service_description' => 'Descripción de Smoking Area', 'service_image_path' => 'storage/app/public/services_images/smoking_area.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Happy Hours', 'service_description' => 'Descripción de Happy Hours', 'service_image_path' => 'storage/app/public/services_images/happy_hours.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Happy Birthday', 'service_description' => 'Descripción de Happy Birthday', 'service_image_path' => 'storage/app/public/services_images/happy_birthday.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Parking', 'service_description' => 'Descripción de Parking', 'service_image_path' => 'storage/app/public/services_images/parking.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Pet Friendly', 'service_description' => 'Descripción de Pet Friendly', 'service_image_path' => 'storage/app/public/services_images/pet_friendly.png', 'user_id' => 1],
+            ['service_uuid' => Uuid::uuid4()->toString(), 'service_name' => 'Catering', 'service_description' => 'Descripción de Catering', 'service_image_path' => 'storage/app/public/services_images/catering.png', 'user_id' => 1],
+        ];
+
+
+        foreach ($services as $service) {
+            Service::create($service);
+        }
+        // END CATEGORIAS
 
         
 }

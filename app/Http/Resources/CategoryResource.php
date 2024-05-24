@@ -16,7 +16,7 @@ class CategoryResource extends JsonResource
     {
         $subcategories = $this->subcategories()->exists() ? $this->subcategories : [];
         return [
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'category_uuid' => $this->category_uuid,
             'category_name' => $this->category_name,
             'category_description' => $this->category_description,

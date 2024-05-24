@@ -38,6 +38,7 @@ class UserResource extends JsonResource {
 
         // Include the user's businesses
         $data['business'] = $this->businesses->map(function ($business) {
+            $business_services = ServiceResource::collection($business->services); 
             // Include business cover images
             $coverImages = $business->coverImages->map(function ($image) {
                 return [
@@ -143,12 +144,13 @@ class UserResource extends JsonResource {
                 'business_country' => $business->business_country,
                 'business_website' => $business->business_website,
                 'business_about_us' => $business->business_about_us,
-                'business_services' => $business->business_services,
+                
                 'business_additional_info' => $business->business_additional_info,
                 'business_latitude' => (double) $business->business_latitude,
                 'business_longitude' => (double) $business->business_longitude,
                 'category_id' => $business->category ? $business->category->id : null,
                 'category' => $business->category,
+                'business_services' => $business_services,
                 'cover_images' => $coverImages,
                 'business_promotions' => $promotions,
                 'business_branches' => $branches,

@@ -23,7 +23,7 @@ class Business extends Model
         'business_country',
         'business_website',
         'business_about_us',
-        'business_services',
+        
         'business_additional_info',
         'business_latitude',
         'business_longitude',
@@ -58,4 +58,8 @@ class Business extends Model
 }
 
 
+public function services()
+    {
+        return $this->belongsToMany(Service::class, 'business_service');
+    }
 }

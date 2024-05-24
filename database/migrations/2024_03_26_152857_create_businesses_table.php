@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('business_website')->nullable();
             $table->string('business_about_us')->nullable();
             $table->string('business_additional_info')->nullable();
-            $table->string('business_services')->nullable();
+           
             $table->double('business_latitude', 10, 6)->nullable(); 
             $table->double('business_longitude', 10, 6)->nullable(); 
             $table->foreignId('category_id')->constrained('categories')->onUpdate('cascade')->onDelete('cascade');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Business;
+
 use App\Http\Requests\BusinessRequest;
 use App\Http\Resources\BusinessResource;
 use Ramsey\Uuid\Uuid;
@@ -101,11 +102,20 @@ public function store(BusinessRequest $request)
             // Crear el negocio
             $business = Business::create($data);
 
+            // Verificar y ajustar el formato de business_services
+            $services = $data['business_services'] ?? [];
+            if (!is_array($services)) {
+                $services = [$services];  // Convertir a array si no lo es
+            }
+
+            // Asociar servicios con el negocio usando la tabla pivot
+            $business->services()->attach($services);
+
             // Enviar correo electrónico de manera asincrónica
             Mail::to($business->user->email)->queue(new WelcomeMailBusiness($business->user, $business));
 
             // Devolver una respuesta adecuada
-            return response()->json( new BusinessResource($business), 200);
+            return response()->json(new BusinessResource($business), 200);
         });
     } catch (\Exception $exception) {
         // Manejo específico de excepciones fuera de la transacción
@@ -113,6 +123,9 @@ public function store(BusinessRequest $request)
         return response()->json(['message' => 'An error occurred: ' . $exception->getMessage()], 500);
     }
 }
+
+
+
 
 
 
@@ -160,18 +173,26 @@ private function deleteImage($imagePath)
 }
 
 
-
 public function update(BusinessRequest $request, $uuid)
 {
     try {
-        // Obtener el negocio por su UUID asociado al usuario autenticado
-        $business = auth()->user()->businesses()->where('business_uuid', $uuid)->firstOrFail();
+        // Iniciar la transacción
+        return DB::transaction(function () use ($request, $uuid) {
+            // Obtener el negocio por su UUID asociado al usuario autenticado
+            $business = auth()->user()->businesses()->where('business_uuid', $uuid)->firstOrFail();
 
-        // Actualizar el negocio con los datos validados
-        $business->update($request->validated());
+            // Actualizar el negocio con los datos validados
+            $business->update($request->validated());
 
-        // Devolver una respuesta JSON con el negocio actualizado
-        return response()->json(new BusinessResource($business), 200);
+            // Sincronizar los servicios si están presentes y no vacíos en la solicitud
+            if ($request->filled('business_services')) {
+                $serviceIds = $request->input('business_services');
+                $business->services()->sync($serviceIds);
+            }
+
+            // Devolver una respuesta JSON con el negocio actualizado
+            return response()->json(new BusinessResource($business->fresh()), 200);
+        });
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
         // Si no se encuentra el negocio
         Log::warning("Business with UUID {$uuid} not found for user ID " . auth()->id());
@@ -228,10 +249,7 @@ public function restore($uuid)
         $business->restore();
 
         // Devolver una respuesta JSON con el mensaje y el negocio restaurado
-        return response()->json([
-            'message' => 'Business restored successfully',
-            'business' => new BusinessResource($business)
-        ], 200);
+        return response()->json(new BusinessResource($business), 200);
     } catch (\Exception $e) {
     // Manejar el error y registrar el error
     Log::error('Error restoring business: ' . $e->getMessage());

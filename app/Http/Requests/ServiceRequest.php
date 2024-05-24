@@ -5,8 +5,9 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Validation\Rule;
 
-class CategoryRequest extends FormRequest
+class ServiceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,18 +22,24 @@ class CategoryRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
-    public function rules()
-    {
-       $categoryId = $this->route('category') ? $this->route('category')->id : null;
+      public function rules()
+{
+    $serviceId = $this->route('service') ? $this->route('service')->id : null;
+    $isStoreRoute = $this->is('api/services/store');
+
 
     return [
-         'category_name' => 'required|string|min:3|max:255|unique:categories,category_name,' . $categoryId . ',id',
-        'category_description' => 'nullable|string|max:255',
-        'category_image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3048',
-       
-        
+        'service_name' => [
+            $isStoreRoute ? 'required' : 'sometimes',
+            'string',
+            'min:3',
+            'max:255'
+        ],
+        'service_description' => 'nullable|string|max:255',
+        'service_image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:3048',
     ];
-    }
+}
+
 
     public function failedValidation(Validator $validator)
 
@@ -49,13 +56,10 @@ class CategoryRequest extends FormRequest
         ], 422));
 
     }
-
-
-    
-    public function messages()
+public function messages()
 {
     return [
-        'category_name.unique' => 'The category name is already in use.',
+        'service_name.unique' => 'The service name is already in use.',
         
     ];
 }
